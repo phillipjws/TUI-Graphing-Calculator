@@ -73,43 +73,33 @@ void TUI::terminate() {
 void TUI::draw_main() {
     clear();
     
-    const char* title_1 = " ________  ______  _____              __   _             _____     __         __     __          \n";
-    const char* title_2 = "/_  __/ / / /  _/ / ___/______ ____  / /  (_)__  ___ _  / ___/__ _/ /_____ __/ /__ _/ /____  ____\n";
-    const char* title_3 = " / / / /_/ // /  / (_ / __/ _ `/ _ \\/ _ \\/ / _ \\/ _ `/ / /__/ _ `/ / __/ // / / _ `/ __/ _ \\/ __/\n";
-    const char* title_4 = "/_/  \\____/___/  \\___/_/  \\_,_/ .__/_//_/_/_//_/\\_, /  \\___/\\_,_/_/\\__/\\_,_/_/\\_,_/\\__/\\___/_/   \n";
-    const char* title_5 = "                             /_/               /___/                                             \n";
-    /*
- ________  ______
-/_  __/ / / /  _/
- / / / /_/ // /  
-/_/  \____/___/  
-  _____              __   _          
- / ___/______ ____  / /  (_)__  ___ _
-/ (_ / __/ _ `/ _ \/ _ \/ / _ \/ _ `/
-\___/_/  \_,_/ .__/_//_/_/_//_/\_, / 
-            /_/               /___/  
-  _____     __         __     __          
- / ___/__ _/ /_____ __/ /__ _/ /____  ____
-/ /__/ _ `/ / __/ // / / _ `/ __/ _ \/ __/
-\___/\_,_/_/\__/\_,_/_/\_,_/\__/\___/_/                                            
-    */
+    std::vector<std::string> title = {
+        " ________  ______\n",
+        "/_  __/ / / /  _/\n",
+        " / / / /_/ // /  \n",
+        "/_/  \\____/___/  \n",
+        "  _____              __   _          \n",
+        " / ___/______ ____  / /  (_)__  ___ _\n",
+        "/ (_ / __/ _ `/ _ \\/ _ \\/ / _ \\/ _ `/\n",
+        "\\___/_/  \\_,_/ .__/_//_/_/_//_/\\_, / \n",
+        "            /_/               /___/  \n",
+        "  _____     __         __     __          \n",
+        " / ___/__ _/ /_____ __/ /__ _/ /____  ____\n",
+        "/ /__/ _ `/ / __/ // / / _ `/ __/ _ \\/ __/\n",
+        "\\___/\\_,_/_/\\__/\\_,_/_/\\_,_/\\__/\\___/_/   \n"
 
-
-
-
-
-
+    };
 
 
 
     int title_start_x = 6;
     int title_start_y = getmaxy(stdscr) / 3;
 
-    mvwprintw(stdscr, title_start_y, title_start_x, title_1);
-    mvwprintw(stdscr, title_start_y + 1, title_start_x, title_2);
-    mvwprintw(stdscr, title_start_y + 2, title_start_x, title_3);
-    mvwprintw(stdscr, title_start_y + 3, title_start_x, title_4);
-    mvwprintw(stdscr, title_start_y + 4, title_start_x, title_5);
+    for(int i = 0; i < title.size(); i++) {
+        mvwprintw(stdscr, title_start_y + i, title_start_x, title[i].c_str());
+    }
+    
+    
     refresh();
 }
 
