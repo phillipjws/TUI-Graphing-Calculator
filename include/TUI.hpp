@@ -3,6 +3,7 @@
 
 #include <ncurses.h>
 #include <string>
+#include <vector>
 
 class TUI {
     public:
@@ -20,6 +21,9 @@ class TUI {
         void display_graph(const std::string& function); // Display graph in ASCII art
 
         WINDOW* main_window;                // Main ncurses window
+        std::vector<std::string> menu_items;
+        int highlighted_item;
+        int menu_size;
 };
 
 #endif // TUI_HPP

@@ -7,8 +7,13 @@ project(cpp_project-terminal_based_graphing_calculator LANGUAGES CXX)
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-find_package(ncurses REQUIRED)
+find_package(Curses REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR}/include /usr/include)
+include_directories(${PROJECT_SOURCE_DIR}/include /usr/include ${CURSES_INCLUDE_DIR})
 
-add_executable(calculator ${PROJECT_SOURCE_DIR}/src/main.cpp)
+add_executable(calculator 
+    ${PROJECT_SOURCE_DIR}/src/main.cpp
+    ${PROJECT_SOURCE_DIR}/src/TUI.cpp
+)
+
+target_link_libraries(calculator ${CURSES_LIBRARIES})
