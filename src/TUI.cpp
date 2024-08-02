@@ -4,6 +4,7 @@
 
 TUI::TUI() : highlighted_item(0) {
     menu_window = nullptr;
+    status_window = nullptr;
     menu_items = {
         "Input Function",
         "Change Domain",
@@ -67,6 +68,9 @@ void TUI::terminate() {
     if (menu_window) {
         delwin(menu_window);
     }
+    if (status_window) {
+        delwin(status_window);
+    }
     endwin();
 }
 
@@ -93,7 +97,7 @@ void TUI::draw_main() {
 
 
     int title_start_x = 6;
-    int title_start_y = getmaxy(stdscr) / 3;
+    int title_start_y = getmaxy(stdscr) / 10;
 
     for(int i = 0; i < title.size(); i++) {
         mvwprintw(stdscr, title_start_y + i, title_start_x, title[i].c_str());
@@ -144,40 +148,82 @@ void TUI::handle_input() {
 }
 
 void TUI::execute_command(int command) {
-    // Perform actions based on the selected command
+    std::string message;
     switch (command) {
         case 0: // Input Function
-            mvwprintw(menu_window, 3, 2, "Function input is not yet implemented.");
+            message = "Function input is not yet implemented.";
             break;
         case 1: // Change Domain/Range
-            mvwprintw(menu_window, 3, 2, "Change Domain/Range is not yet implemented.");
+            message = "Change Domain/Range is not yet implemented.";
             break;
         case 2: // Change Variables
-            mvwprintw(menu_window, 3, 2, "Change Variables is not yet implemented.");
+            message = "Change Variables is not yet implemented.";
             break;
         case 3: // Change Interval
-            mvwprintw(menu_window, 3, 2, "Change Interval is not yet implemented.");
+            message = "Change Interval is not yet implemented.";
             break;
         case 4: // Enable Output File
-            mvwprintw(menu_window, 3, 2, "Enable Output File is not yet implemented.");
+            message = "Enable Output File is not yet implemented.";
             break;
         case 5: // Set Export Directory
-            mvwprintw(menu_window, 3, 2, "Set Export Directory is not yet implemented.");
+            message = "Set Export Directory is not yet implemented.";
             break;
         case 6: // Help
-            mvwprintw(menu_window, 3, 2, "Help is not yet implemented.");
+            message = "Help is not yet implemented.";
             break;
         case 7: // Quit
             // Exit the program
             terminate();
             exit(0);
         default:
+            message = "Invalid selection.";
             break;
     }
 
-    wnoutrefresh(menu_window);
-    doupdate();
-    wgetch(menu_window);
+    show_status(message); // Show status window with message
+}
+
+void TUI::show_status(const std::string& message) {
+    int max_x, max_y;
+    getmaxyx(stdscr, max_y, max_x);
+
+    int status_height = 5;
+    int status_width = 50;
+    int status_start_y = (max_y - status_height) / 2; // Center vertically
+    int status_start_x = (max_x - status_width) / 2; // Center horizontally
+
+    status_window = newwin(status_height, status_width, status_start_y, status_start_x);
+    keypad(status_window, TRUE);
+
+    bool continue_interaction = true;
+    while (continue_interaction) {
+        wclear(status_window);
+        box(status_window, 0, 0);
+
+        mvwprintw(status_window, 2, 2, "%s", message.c_str());
+        mvwprintw(status_window, 3, 2, "Press Enter to continue, or Q to quit");
+
+        wrefresh(status_window);
+
+        int ch = wgetch(status_window);
+        switch (ch) {
+            case 'q':
+            case 'Q':
+                continue_interaction = false; // Exit the loop on 'q' or 'Q'
+                break;
+            case '\n': // Enter key
+                continue_interaction = false; // Exit the loop on Enter (for now)
+                break;
+            default:
+                break;
+        }
+    }
+
+    delwin(status_window);
+    status_window = nullptr;
+
+    touchwin(stdscr);
+    refresh();
 }
 
 void TUI::display_graph(const std::string& function) {
