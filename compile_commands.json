@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/Users/phillipsteeves/Classes/Summer2024/seng475/project/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -I/Users/phillipsteeves/Classes/Summer2024/seng475/project/include -std=gnu++20 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/calculator.dir/src/main.cpp.o -c /Users/phillipsteeves/Classes/Summer2024/seng475/project/src/main.cpp",
+  "file": "/Users/phillipsteeves/Classes/Summer2024/seng475/project/src/main.cpp",
+  "output": "CMakeFiles/calculator.dir/src/main.cpp.o"
+},
+{
+  "directory": "/Users/phillipsteeves/Classes/Summer2024/seng475/project/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -I/Users/phillipsteeves/Classes/Summer2024/seng475/project/include -std=gnu++20 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/calculator.dir/src/TUI.cpp.o -c /Users/phillipsteeves/Classes/Summer2024/seng475/project/src/TUI.cpp",
+  "file": "/Users/phillipsteeves/Classes/Summer2024/seng475/project/src/TUI.cpp",
+  "output": "CMakeFiles/calculator.dir/src/TUI.cpp.o"
+}
+]
