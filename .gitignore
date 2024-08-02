@@ -1,0 +1,5 @@
+.clang-format
+compile_flags.txt
+build/
+.cache/
+.DS_Store

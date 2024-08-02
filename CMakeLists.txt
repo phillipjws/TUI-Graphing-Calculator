@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.29 FATAL_ERROR)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+
+project(cpp_project-terminal_based_graphing_calculator LANGUAGES CXX)
+
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
+find_package(ncurses REQUIRED)
+
+include_directories(${PROJECT_SOURCE_DIR}/include /usr/include)
+
+add_executable(calculator ${PROJECT_SOURCE_DIR}/src/main.cpp)
