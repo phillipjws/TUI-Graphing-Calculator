@@ -32,7 +32,7 @@ class TUI {
         int highlighted_item;
         int menu_size = 8;
         Domain domain;
-        double number_of_samples = 
+        int number_of_samples = 10000;
 };
 
 #endif // TUI_HPP

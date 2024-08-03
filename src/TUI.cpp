@@ -10,7 +10,7 @@ TUI::TUI() : highlighted_item(0), domain(-100, 100) {
         "Input Function",
         "Change Domain",
         "Change Variables",
-        "Change amount of sample points",
+        "Change amount of Sample Points",
         "Enable Output File",
         "Set Export Directory",
         "Help",
@@ -160,8 +160,8 @@ void TUI::execute_command(int command) {
         case 2: // Change Variables
             message = "Change Variables is not yet implemented.";
             break;
-        case 3: // Change Interval
-            message = "Change Interval is not yet implemented.";
+        case 3: // Change Number of Sample Points
+            message = "Using " + std::to_string(number_of_samples) + " samples";
             break;
         case 4: // Enable Output File
             message = "Enable Output File is not yet implemented.";
