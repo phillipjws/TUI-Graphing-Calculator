@@ -2,8 +2,6 @@
 #define ANALYSIS_PARAMETERS_HPP
 
 #include <string>
-#include <stdexcept>
-#include <limits>
 
 class AnalysisParameters {
 public:
@@ -13,6 +11,7 @@ public:
     int get_end() const;
     int get_num_samples() const;
     double get_step() const;
+    double get_min_step() const;
 
     std::string display_domain() const;
     std::string display_num_step() const;
@@ -20,7 +19,8 @@ public:
     void set_start(int new_start);
     void set_end(int new_end);
     void set_num_samples(int new_samples);
-    bool is_valid() const;
+    bool is_valid_domain() const;
+    bool is_valid_samples() const;
     void update_step();
 
 private:
@@ -28,6 +28,7 @@ private:
     int end_;
     int num_samples_;
     double step_;
+    double min_step_;
 };
 
 #endif // ANALYSIS_PARAMETERS_HPP

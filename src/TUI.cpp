@@ -152,13 +152,13 @@ void TUI::execute_command(int command) {
             message = "Function input is not yet implemented.";
             break;
         case 1: // Change Domain/Range
-            message = parameters.display_domain(); // Use parameters to display the domain
+            message = parameters.display_domain();
             break;
         case 2: // Change Variables
             message = "Change Variables is not yet implemented.";
             break;
         case 3: // Change Number of Sample Points
-            message = "Using " + std::to_string(parameters.get_num_samples()) + " samples";
+            message = parameters.display_num_step();
             break;
         case 4: // Enable Output File
             message = "Enable Output File is not yet implemented.";
@@ -186,7 +186,7 @@ void TUI::show_status(const std::string& initial_message, int command) {
     getmaxyx(stdscr, max_y, max_x);
 
     int status_height = 10;
-    int status_width = 50;
+    int status_width = 65;
     int status_start_y = (max_y - status_height) / 2; // Center vertically
     int status_start_x = (max_x - status_width) / 2; // Center horizontally
 
@@ -203,55 +203,29 @@ void TUI::show_status(const std::string& initial_message, int command) {
         mvwprintw(status_window, 1, 2, "%s", message.c_str());
         mvwprintw(status_window, 7, 2, "Press B to go back");
 
-        int ch;
-        switch (command) {
-            case 0: // Input Function
-                break;
-
-            case 1: { // Change Domain/Range
-                mvwprintw(status_window, 3, 2, "Press S to change start or E to change end");
-
-                wrefresh(status_window);
-                ch = wgetch(status_window);
-                handle_domain(ch, message, continue_interaction);
-
-                break;
-            }
-
-            case 2: // Change Variables
-                break;
-
-            case 3: // Change Interval
-                mvwprintw(status_window, 3, 2, "Press N to change number of samples");
-
-                wrefresh(status_window);
-                ch = wgetch(status_window);
-                handle_sample_size(ch, message, continue_interaction);
-
-                break;
-
-            case 4: // Enable Output File
-                break;
-
-            case 5: // Set Export Directory
-                break;
-
-            case 6: // Help
-                break;
-
-            default:
-                mvwprintw(status_window, 3, 2, "Invalid selection.");
-                break;
-        }
-
-        mvwprintw(status_window, 7, 2, "Press B to go back");
         wrefresh(status_window);
 
-        if (command != 1) { 
-            ch = wgetch(status_window);
-            if (ch == 'b' || ch == 'B') {
-                continue_interaction = false;
-            }
+        if (command == 1) { 
+            mvwprintw(status_window, 3, 2, "Press S to change start or E to change end");
+            wrefresh(status_window);
+        } else if (command == 3) {
+            mvwprintw(status_window, 3, 2, "Press N to change number of samples");
+            wrefresh(status_window);
+        }
+
+        int ch = wgetch(status_window);
+        switch (command) {
+            case 1:
+                handle_domain(ch, message, continue_interaction);
+                break;
+            case 3:
+                handle_sample_size(ch, message, continue_interaction);
+                break;
+            default:
+                if (ch == 'b' || ch == 'B') {
+                    continue_interaction = false;
+                }
+                break;
         }
     }
 
@@ -297,38 +271,33 @@ void TUI::get_single_number_input(const std::string& prompt, int& target) {
 }
 
 void TUI::handle_sample_size(int ch, std::string& message, bool& continue_interaction) {
-    const double min_step = std::numeric_limits<double>::epsilon() * 10;
-    double epsilon = std::numeric_limits<double>::epsilon();
-
     switch (ch) {
         case 'n':
-        case 'N':
+        case 'N': {
             int new_num_samples;
             get_single_number_input("Enter new number of samples: ", new_num_samples);
-            parameters.set_num_samples(new_num_samples);
-            parameters.update_step();
-
-            if (parameters.get_step() < min_step) {
-                parameters.set_num_samples(static_cast<int>(parameters.get_end() - parameters.get_start()) / min_step);
-                parameters.update_step();
-                mvwprintw(status_window, 5, 2, "Sample size too large. Adjusted to %d samples.", parameters.get_num_samples());
+            try {
+                parameters.set_num_samples(new_num_samples);
+                message = parameters.display_num_step();
+            } catch (const std::exception& e) {
+                mvwprintw(status_window, 5, 2, e.what());
+                parameters.set_num_samples(static_cast<int>((parameters.get_end() - parameters.get_start()) / parameters.get_min_step()));
+                message = parameters.display_num_step();
+                mvwprintw(status_window, 6, 2, "Press any key to continue...");
                 wrefresh(status_window);
                 wgetch(status_window);
             }
-
-            mvwprintw(status_window, 4, 2, "Interval step size is %f", parameters.get_step());
             break;
+        }
 
         case 'b':
         case 'B':
             continue_interaction = false;
-            break;
+            return;
 
         default:
             break;
     }
-
-    wrefresh(status_window);
 }
 
 void TUI::handle_domain(int ch, std::string& message, bool& continue_interaction) {
@@ -342,7 +311,7 @@ void TUI::handle_domain(int ch, std::string& message, bool& continue_interaction
                 message = parameters.display_domain();
             } catch (const std::exception& e) {
                 mvwprintw(status_window, 5, 2, e.what());
-                parameters.set_start(parameters.get_end() - 10); // Revert to a valid state
+                parameters.set_start(parameters.get_end() - 10);
                 message = parameters.display_domain();
                 mvwprintw(status_window, 6, 2, "Press any key to continue...");
                 wrefresh(status_window);
