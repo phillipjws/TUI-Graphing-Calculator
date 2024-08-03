@@ -4,6 +4,7 @@
 #include <ncurses.h>
 #include <string>
 #include <vector>
+#include "Domain.hpp"
 
 class TUI {
     public:
@@ -19,8 +20,10 @@ class TUI {
         void draw_menu();                   // Draw the main menu
         void handle_input();                // Handle user input
         void execute_command(int command);  // Execute user command
-        void show_status(const std::string& message);       // Show status window when user selects an option
-        void display_graph(const std::string& function);    // Display graph in ASCII art
+        void show_status(const std::string& message, int command); // Show status window when user selects an option
+        void display_graph(const std::string& function); // Display graph in ASCII art
+        void get_input_for_domain(const std::string& prompt, int& target);
+        void handle_domain(int ch, std::string& message, bool& continue_interaction);
 
         WINDOW* main_window;                // Main ncurses window
         WINDOW* menu_window;                // Menu window
@@ -28,6 +31,7 @@ class TUI {
         std::vector<std::string> menu_items;
         int highlighted_item;
         int menu_size = 8;
+        Domain domain;
 };
 
 #endif // TUI_HPP
