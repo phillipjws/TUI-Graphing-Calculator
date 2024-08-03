@@ -209,7 +209,6 @@ void TUI::show_status(const std::string& initial_message, int command) {
         int ch;
         switch (command) {
             case 0: // Input Function
-                mvwprintw(status_window, 3, 2, "Function input not yet implemented.");
                 break;
 
             case 1: { // Change Domain/Range
@@ -223,23 +222,18 @@ void TUI::show_status(const std::string& initial_message, int command) {
             }
 
             case 2: // Change Variables
-                mvwprintw(status_window, 3, 2, "Change Variables not yet implemented.");
                 break;
 
             case 3: // Change Interval
-                mvwprintw(status_window, 3, 2, "Change Interval not yet implemented.");
                 break;
 
             case 4: // Enable Output File
-                mvwprintw(status_window, 3, 2, "Enable Output File not yet implemented.");
                 break;
 
             case 5: // Set Export Directory
-                mvwprintw(status_window, 3, 2, "Set Export Directory not yet implemented.");
                 break;
 
             case 6: // Help
-                mvwprintw(status_window, 3, 2, "Help not yet implemented.");
                 break;
 
             default:
@@ -248,13 +242,12 @@ void TUI::show_status(const std::string& initial_message, int command) {
         }
 
         mvwprintw(status_window, 7, 2, "Press B to go back");
-        wrefresh(status_window); // Refresh to display all updates
+        wrefresh(status_window);
 
-        // Wait for user input to go back only if not in the middle of domain change
         if (command != 1) { 
-            int ch = wgetch(status_window);
+            ch = wgetch(status_window);
             if (ch == 'b' || ch == 'B') {
-                continue_interaction = false; // Exit the loop
+                continue_interaction = false;
             }
         }
     }
@@ -267,31 +260,36 @@ void TUI::show_status(const std::string& initial_message, int command) {
 }
 
 void TUI::get_input_for_domain(const std::string& prompt, int& target) {
-    char input_str[10]; // Buffer for input
-    int new_value; // To hold the new integer value
+    char input_str[10];
+    int new_value;
 
-    wclear(status_window); // Clear the window for fresh input
-    box(status_window, 0, 0); // Draw a box around the window
+    wclear(status_window);
+    box(status_window, 0, 0);
 
     mvwprintw(status_window, 3, 2, "%s", prompt.c_str());
     wrefresh(status_window);
 
-    echo(); // Enable echoing of typed characters
-    curs_set(1); // Show the cursor
+    echo();
+    curs_set(1);
 
-    wgetnstr(status_window, input_str, sizeof(input_str) - 1); // Read input
+    wgetnstr(status_window, input_str, sizeof(input_str) - 1);
 
-    noecho(); // Disable echoing
-    curs_set(0); // Hide the cursor
+    noecho();
+    curs_set(0);
 
-    // Try to convert the input string to an integer
+    std::string input = input_str;
+    size_t pos;
+
     try {
-        new_value = std::stoi(input_str); // Convert string to integer
-        target = new_value; // Update the target value
+        new_value = std::stoi(input, &pos);
+        if(pos != input.length()) {
+            throw std::invalid_argument("Trailing characters");
+        }
+        target = new_value;
     } catch (const std::exception& e) {
         mvwprintw(status_window, 5, 2, "Invalid input. Please enter a number.");
         wrefresh(status_window);
-        wgetch(status_window); // Wait for user input to acknowledge error
+        wgetch(status_window);
     }
 }
 
