@@ -14,6 +14,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include /usr/include ${CURSES_INCLUDE_
 add_executable(calculator 
     ${PROJECT_SOURCE_DIR}/src/main.cpp
     ${PROJECT_SOURCE_DIR}/src/TUI.cpp
+    ${PROJECT_SOURCE_DIR}/src/analysis_parameters.cpp
 )
 
 target_link_libraries(calculator ${CURSES_LIBRARIES})

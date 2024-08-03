@@ -2,8 +2,9 @@
 #include <iostream>
 #include <ncurses.h>
 #include <map>
+#include <limits>
 
-TUI::TUI() : highlighted_item(0), domain(-100, 100) {
+TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000) {
     menu_window = nullptr;
     status_window = nullptr;
     menu_items = {
@@ -92,18 +93,14 @@ void TUI::draw_main() {
         " / ___/__ _/ /_____ __/ /__ _/ /____  ____\n",
         "/ /__/ _ `/ / __/ // / / _ `/ __/ _ \\/ __/\n",
         "\\___/\\_,_/_/\\__/\\_,_/_/\\_,_/\\__/\\___/_/   \n"
-
     };
-
-
 
     int title_start_x = 6;
     int title_start_y = getmaxy(stdscr) / 10;
 
-    for(int i = 0; i < title.size(); i++) {
+    for (int i = 0; i < title.size(); i++) {
         mvwprintw(stdscr, title_start_y + i, title_start_x, title[i].c_str());
     }
-    
     
     refresh();
 }
@@ -133,12 +130,12 @@ void TUI::handle_input() {
         case KEY_UP:
             // Move up in the menu
             --highlighted_item;
-            if(highlighted_item < 0) highlighted_item++;
+            if (highlighted_item < 0) highlighted_item++;
             break;
         case KEY_DOWN:
             // Move down in the menu
             ++highlighted_item;
-            if(highlighted_item >= menu_size) --highlighted_item;
+            if (highlighted_item >= menu_size) --highlighted_item;
             break;
         case '\n':  // Enter key
             execute_command(highlighted_item);
@@ -155,13 +152,13 @@ void TUI::execute_command(int command) {
             message = "Function input is not yet implemented.";
             break;
         case 1: // Change Domain/Range
-            message = domain.display();
+            message = parameters.display_domain(); // Use parameters to display the domain
             break;
         case 2: // Change Variables
             message = "Change Variables is not yet implemented.";
             break;
         case 3: // Change Number of Sample Points
-            message = "Using " + std::to_string(number_of_samples) + " samples";
+            message = "Using " + std::to_string(parameters.get_num_samples()) + " samples";
             break;
         case 4: // Enable Output File
             message = "Enable Output File is not yet implemented.";
@@ -218,13 +215,19 @@ void TUI::show_status(const std::string& initial_message, int command) {
                 ch = wgetch(status_window);
                 handle_domain(ch, message, continue_interaction);
 
-                break; // Ensure we exit this block properly
+                break;
             }
 
             case 2: // Change Variables
                 break;
 
             case 3: // Change Interval
+                mvwprintw(status_window, 3, 2, "Press N to change number of samples");
+
+                wrefresh(status_window);
+                ch = wgetch(status_window);
+                handle_sample_size(ch, message, continue_interaction);
+
                 break;
 
             case 4: // Enable Output File
@@ -259,7 +262,7 @@ void TUI::show_status(const std::string& initial_message, int command) {
     refresh();
 }
 
-void TUI::get_input_for_domain(const std::string& prompt, int& target) {
+void TUI::get_single_number_input(const std::string& prompt, int& target) {
     char input_str[10];
     int new_value;
 
@@ -293,41 +296,86 @@ void TUI::get_input_for_domain(const std::string& prompt, int& target) {
     }
 }
 
+void TUI::handle_sample_size(int ch, std::string& message, bool& continue_interaction) {
+    const double min_step = std::numeric_limits<double>::epsilon() * 10;
+    double epsilon = std::numeric_limits<double>::epsilon();
+
+    switch (ch) {
+        case 'n':
+        case 'N':
+            int new_num_samples;
+            get_single_number_input("Enter new number of samples: ", new_num_samples);
+            parameters.set_num_samples(new_num_samples);
+            parameters.update_step();
+
+            if (parameters.get_step() < min_step) {
+                parameters.set_num_samples(static_cast<int>(parameters.get_end() - parameters.get_start()) / min_step);
+                parameters.update_step();
+                mvwprintw(status_window, 5, 2, "Sample size too large. Adjusted to %d samples.", parameters.get_num_samples());
+                wrefresh(status_window);
+                wgetch(status_window);
+            }
+
+            mvwprintw(status_window, 4, 2, "Interval step size is %f", parameters.get_step());
+            break;
+
+        case 'b':
+        case 'B':
+            continue_interaction = false;
+            break;
+
+        default:
+            break;
+    }
+
+    wrefresh(status_window);
+}
+
 void TUI::handle_domain(int ch, std::string& message, bool& continue_interaction) {
     switch (ch) {
-    case 's':
-    case 'S':
-        get_input_for_domain("Enter new start value: ", domain.start);
-        if (!domain.is_valid()) {
-            mvwprintw(status_window, 5, 2, "Start must be less than end.");
-            domain.start = domain.end - 1;
-            mvwprintw(status_window, 6, 2, "Press any key to continue...");
-            wrefresh(status_window);
-            wgetch(status_window);
+        case 's':
+        case 'S': {
+            int new_start;
+            get_single_number_input("Enter new start value: ", new_start);
+            try {
+                parameters.set_start(new_start);
+                message = parameters.display_domain();
+            } catch (const std::exception& e) {
+                mvwprintw(status_window, 5, 2, e.what());
+                parameters.set_start(parameters.get_end() - 10); // Revert to a valid state
+                message = parameters.display_domain();
+                mvwprintw(status_window, 6, 2, "Press any key to continue...");
+                wrefresh(status_window);
+                wgetch(status_window);
+            }
+            break;
         }
-        message = domain.display();
-        break;
 
-    case 'e':
-    case 'E':
-        get_input_for_domain("Enter new end value: ", domain.end);
-        if (!domain.is_valid()) {
-            mvwprintw(status_window, 5, 2, "End must be greater than start.");
-            domain.end = domain.start + 1;
-            mvwprintw(status_window, 6, 2, "Press any key to continue...");
-            wrefresh(status_window);
-            wgetch(status_window);
+        case 'e':
+        case 'E': {
+            int new_end;
+            get_single_number_input("Enter new end value: ", new_end);
+            try {
+                parameters.set_end(new_end);
+                message = parameters.display_domain();
+            } catch (const std::exception& e) {
+                mvwprintw(status_window, 5, 2, e.what());
+                parameters.set_end(parameters.get_start() + 10); // Revert to a valid state
+                message = parameters.display_domain();
+                mvwprintw(status_window, 6, 2, "Press any key to continue...");
+                wrefresh(status_window);
+                wgetch(status_window);
+            }
+            break;
         }
-        message = domain.display();
-        break;
 
-    case 'b':
-    case 'B':
-        continue_interaction = false;
-        break;
+        case 'b':
+        case 'B':
+            continue_interaction = false;
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 }
 
