@@ -30,6 +30,8 @@ class TUI {
                            bool &continue_interaction);
         void handle_sample_size(int ch, std::string &message,
                                 bool &continue_interaction);
+        void handle_output_status(int ch, std::string &message,
+                                  bool &continue_interaction);
 
         WINDOW *main_window;   // Main ncurses window
         WINDOW *menu_window;   // Menu window

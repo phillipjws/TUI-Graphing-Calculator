@@ -158,7 +158,7 @@ void TUI::execute_command(int command) {
         message = parameters.display_num_step();
         break;
     case 4: // Enable Output File
-        message = "Enable Output File is not yet implemented.";
+        message = parameters.display_output_status();
         break;
     case 5: // Set Export Directory
         message = "Set Export Directory is not yet implemented.";
@@ -199,18 +199,21 @@ void TUI::show_status(const std::string &initial_message, int command) {
         box(status_window, 0, 0);
 
         mvwprintw(status_window, 1, 2, "%s", message.c_str());
-        mvwprintw(status_window, 7, 2, "Press B to go back");
+        mvwprintw(status_window, 7, 2, "Press 'B' to go back");
 
         wrefresh(status_window);
 
         if (command == 1) {
             mvwprintw(status_window, 3, 2,
-                      "Press S to change start or E to change end");
+                      "Press 'S' to change start or 'E' to change end");
             wrefresh(status_window);
         } else if (command == 3) {
             mvwprintw(status_window, 3, 2,
-                      "Press N to change number of samples");
+                      "Press 'N' to change number of samples");
             wrefresh(status_window);
+        } else if (command == 4) {
+            mvwprintw(status_window, 3, 2,
+                      "Press 'T' or 'F' to enable or disable output file");
         }
 
         int ch = wgetch(status_window);
@@ -220,6 +223,9 @@ void TUI::show_status(const std::string &initial_message, int command) {
             break;
         case 3:
             handle_sample_size(ch, message, continue_interaction);
+            break;
+        case 4:
+            handle_output_status(ch, message, continue_interaction);
             break;
         default:
             if (ch == 'b' || ch == 'B') {
@@ -341,6 +347,32 @@ void TUI::handle_domain(int ch, std::string &message,
             wrefresh(status_window);
             wgetch(status_window);
         }
+        break;
+    }
+
+    case 'b':
+    case 'B':
+        continue_interaction = false;
+        break;
+
+    default:
+        break;
+    }
+}
+
+void TUI::handle_output_status(int ch, std::string &message,
+                               bool &continue_interaction) {
+    switch (ch) {
+    case 't':
+    case 'T': {
+        parameters.set_output_status(true);
+        message = parameters.display_output_status();
+        break;
+    }
+    case 'f':
+    case 'F': {
+        parameters.set_output_status(false);
+        message = parameters.display_output_status();
         break;
     }
 

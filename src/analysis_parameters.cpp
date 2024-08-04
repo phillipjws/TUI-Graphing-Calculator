@@ -45,7 +45,10 @@ std::string AnalysisParameters::display_num_step() const {
 
 // Display the output status as a string
 std::string AnalysisParameters::display_output_status() const {
-    return std::format("Enable output file is: {}", output_status_);
+    if(output_status_) {
+        return "Enable output file is: True";
+    }
+    return "Enable output file is: False";
 }
 
 // Setter for start_
