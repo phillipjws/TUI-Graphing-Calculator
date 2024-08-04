@@ -1,9 +1,9 @@
 #include "TUI.hpp"
 
 int main() {
-    TUI tui;
-    tui.initialize();
-    tui.run();
+  TUI tui;
+  tui.initialize();
+  tui.run();
 
-    return 0;
+  return 0;
 }
