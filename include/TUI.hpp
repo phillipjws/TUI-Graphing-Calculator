@@ -26,12 +26,15 @@ class TUI {
         void display_graph(
             const std::string &function); // Display graph in ASCII art
         void get_single_number_input(const std::string &prompt, int &target);
+        void get_string_input(const std::string &prompt, std::string &target);
         void handle_domain(int ch, std::string &message,
                            bool &continue_interaction);
         void handle_sample_size(int ch, std::string &message,
                                 bool &continue_interaction);
         void handle_output_status(int ch, std::string &message,
                                   bool &continue_interaction);
+        void handle_output_directory(int ch, std::string &message,
+                                     bool &continue_interaction);
 
         WINDOW *main_window;   // Main ncurses window
         WINDOW *menu_window;   // Menu window

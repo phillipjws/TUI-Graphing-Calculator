@@ -1,12 +1,15 @@
 #include "analysis_parameters.hpp"
+#include <filesystem>
 #include <format>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 
 // Constructor definition
 AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
     : start_(start), end_(end), num_samples_(num_samples), min_step_(0.000001),
-      output_status_(false) {
+      output_status_(false),
+      output_directory_path_(std::filesystem::current_path()) {
     if (!is_valid_domain()) {
         throw std::invalid_argument(
             "Invalid Parameters: Start must be less than End");
@@ -32,9 +35,14 @@ double AnalysisParameters::get_min_step() const { return min_step_; }
 // Getter for output_status_
 bool AnalysisParameters::get_output_status() const { return output_status_; }
 
+// Getter for output_directory_path_
+std::filesystem::path AnalysisParameters::get_output_directory_path() const {
+    return output_directory_path_;
+}
+
 // Display the domain as a string
 std::string AnalysisParameters::display_domain() const {
-    return std::format("Domain: {}, {}]", start_, end_);
+    return std::format("Domain: [{}, {}]", start_, end_);
 }
 
 // Display the number of samples and step size
@@ -45,10 +53,19 @@ std::string AnalysisParameters::display_num_step() const {
 
 // Display the output status as a string
 std::string AnalysisParameters::display_output_status() const {
-    if(output_status_) {
-        return "Enable output file is: True";
+    if (output_status_) {
+        return "Enable output file is: On";
     }
-    return "Enable output file is: False";
+    return "Enable output file is: Off";
+}
+
+// Display the current output directory as a string
+std::string AnalysisParameters::display_output_directory_path() const {
+    if (output_status_) {
+        return std::format("Current output directory is: {}",
+                           output_directory_path_.string());
+    }
+    return "Enable output file is off, will not save any output";
 }
 
 // Setter for start_
@@ -83,6 +100,10 @@ void AnalysisParameters::set_num_samples(int new_samples) {
 
 void AnalysisParameters::set_output_status(bool choice) {
     output_status_ = choice;
+}
+
+void AnalysisParameters::set_ouput_directory_path(std::string new_dir) {
+    output_directory_path_ = new_dir;
 }
 
 // Update step based on current parameters

@@ -161,7 +161,7 @@ void TUI::execute_command(int command) {
         message = parameters.display_output_status();
         break;
     case 5: // Set Export Directory
-        message = "Set Export Directory is not yet implemented.";
+        message = parameters.display_output_directory_path();
         break;
     case 6: // Help
         message = "Help is not yet implemented.";
@@ -214,6 +214,11 @@ void TUI::show_status(const std::string &initial_message, int command) {
         } else if (command == 4) {
             mvwprintw(status_window, 3, 2,
                       "Press 'T' or 'F' to enable or disable output file");
+        } else if (command == 5) {
+            if (parameters.get_output_status()) {
+                mvwprintw(status_window, 3, 2,
+                          "Press 'D' to change the output directory");
+            }
         }
 
         int ch = wgetch(status_window);
@@ -226,6 +231,11 @@ void TUI::show_status(const std::string &initial_message, int command) {
             break;
         case 4:
             handle_output_status(ch, message, continue_interaction);
+            break;
+        case 5:
+            if (parameters.get_output_status()) {
+                handle_output_directory(ch, message, continue_interaction);
+            }
             break;
         default:
             if (ch == 'b' || ch == 'B') {
@@ -274,6 +284,28 @@ void TUI::get_single_number_input(const std::string &prompt, int &target) {
         wrefresh(status_window);
         wgetch(status_window);
     }
+}
+
+void TUI::get_string_input(const std::string &prompt, std::string &target) {
+    char input_str[45];
+
+    wclear(status_window);
+    box(status_window, 0, 0);
+
+    mvwprintw(status_window, 3, 2, "%s", prompt.c_str());
+    wrefresh(status_window);
+
+    echo();
+    curs_set(1);
+
+    wgetnstr(status_window, input_str, sizeof(input_str) - 1);
+
+    noecho();
+    curs_set(0);
+
+    std::string input = input_str;
+    
+
 }
 
 void TUI::handle_sample_size(int ch, std::string &message,
@@ -381,6 +413,17 @@ void TUI::handle_output_status(int ch, std::string &message,
         continue_interaction = false;
         break;
 
+    default:
+        break;
+    }
+}
+
+void TUI::handle_output_directory(int ch, std::string &message, bool &continue_interaction) {
+    switch (ch) {
+    case 'd':
+    case 'D': {
+        break;
+    }
     default:
         break;
     }
