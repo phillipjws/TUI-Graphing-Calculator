@@ -11,22 +11,22 @@ class TUI {
         TUI();
         ~TUI();
 
-        void initialize(); // Initialize ncurses and set up interface
-        void run();        // Main loop to handle interaction
-        void terminate();  // Clean up and close ncurses
+        void initialize();
+        void run();
+        void terminate();
 
     private:
-        void draw_main();                  // Draw the main window
-        void draw_menu();                  // Draw the main menu
-        void handle_input();               // Handle user input
-        void execute_command(int command); // Execute user command
-        void show_status(
-            const std::string &message,
-            int command); // Show status window when user selects an option
-        void display_graph(
-            const std::string &function); // Display graph in ASCII art
+        void draw_main();
+        void draw_menu();
+        void handle_input();
+        void execute_command(int command);
+        void show_status(const std::string &message, int command);
+        void display_graph(const std::string &function);
+
         void get_single_number_input(const std::string &prompt, int &target);
         void get_string_input(const std::string &prompt, std::string &target);
+        void get_char_input(const std::string &prompt, char &target);
+
         void handle_domain(int ch, std::string &message,
                            bool &continue_interaction);
         void handle_sample_size(int ch, std::string &message,
@@ -35,10 +35,12 @@ class TUI {
                                   bool &continue_interaction);
         void handle_output_directory(int ch, std::string &message,
                                      bool &continue_interaction);
+        void handle_variable(int ch, std::string &message,
+                             bool &continue_interaction);
 
-        WINDOW *main_window;   // Main ncurses window
-        WINDOW *menu_window;   // Menu window
-        WINDOW *status_window; // Window for when user selects an option
+        WINDOW *main_window;
+        WINDOW *menu_window;
+        WINDOW *status_window;
         std::vector<std::string> menu_items;
         int highlighted_item;
         int menu_size = 8;

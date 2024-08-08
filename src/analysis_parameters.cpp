@@ -75,6 +75,11 @@ std::string AnalysisParameters::display_output_status() const {
     return "Enable output file is: Off";
 }
 
+// Display the current variable as a string
+std::string AnalysisParameters::display_variable() const {
+    return std::format("Independant variable: {}", variable_);
+}
+
 // Display the current output directory as a string
 std::string
 AnalysisParameters::display_output_directory_path(int max_width) const {
@@ -125,8 +130,9 @@ void AnalysisParameters::set_num_samples(int new_samples) {
 // Setter for variable_
 void AnalysisParameters::set_variable(char new_variable) {
     variable_ = new_variable;
-    if(!is_valid_variable()) {
-        throw std::invalid_argument("Invalid Parameters: Variable cannot be a reserved character.");
+    if (!is_valid_variable()) {
+        throw std::invalid_argument(
+            "Invalid Parameters: Variable cannot be a reserved character.");
     }
 }
 
@@ -135,6 +141,7 @@ void AnalysisParameters::set_output_status(bool choice) {
     output_status_ = choice;
 }
 
+// Setter for output directory path
 void AnalysisParameters::set_output_directory_path(std::string new_dir) {
     if (!new_dir.empty() && new_dir.back() != '/') {
         output_directory_path_ = new_dir + "/";

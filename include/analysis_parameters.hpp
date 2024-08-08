@@ -22,6 +22,7 @@ class AnalysisParameters {
         std::string display_domain() const;
         std::string display_num_step() const;
         std::string display_output_status() const;
+        std::string display_variable() const;
         std::string display_output_directory_path(int max_width) const;
 
         void set_start(int new_start);

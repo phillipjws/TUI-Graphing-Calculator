@@ -1,4 +1,5 @@
 #include "TUI.hpp"
+#include <cctype>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -180,7 +181,7 @@ void TUI::execute_command(int command) {
         message = parameters.display_domain();
         break;
     case 2: // Change Variables
-        message = "Change Variables is not yet implemented.";
+        message = parameters.display_variable();
         break;
     case 3: // Change Number of Sample Points
         message = parameters.display_num_step();
@@ -241,6 +242,11 @@ void TUI::show_status(const std::string &initial_message, int command) {
                       "Press 'S' to change start or 'E' to change end");
             wnoutrefresh(status_window);
             doupdate();
+        } else if (command == 2) {
+            mvwprintw(status_window, 3, 2,
+                      "Press 'V' to change independant variable");
+            wnoutrefresh(status_window);
+            doupdate();
         } else if (command == 3) {
             mvwprintw(status_window, 3, 2,
                       "Press 'N' to change number of samples");
@@ -260,6 +266,9 @@ void TUI::show_status(const std::string &initial_message, int command) {
         switch (command) {
         case 1:
             handle_domain(ch, message, continue_interaction);
+            break;
+        case 2:
+            handle_variable(ch, message, continue_interaction);
             break;
         case 3:
             handle_sample_size(ch, message, continue_interaction);
@@ -377,6 +386,35 @@ void TUI::get_string_input(const std::string &prompt, std::string &target) {
     delwin(input_win);
 
     target = std::string(input_str);
+}
+
+void TUI::get_char_input(const std::string &prompt, char &target) {
+    char input_str[2];
+
+    werase(status_window);
+    box(status_window, 0, 0);
+
+    mvwprintw(status_window, 3, 2, "%s", prompt.c_str());
+    wnoutrefresh(status_window);
+    doupdate();
+
+    echo();
+    curs_set(1);
+
+    wgetnstr(status_window, input_str, 1);
+
+    noecho();
+    curs_set(0);
+
+    if (strlen(input_str) == 1 && isalpha(input_str[0])) {
+        target = input_str[0];
+    } else {
+        mvwprintw(status_window, 5, 2,
+                  "Invalid input. Please enter an alphabetic character.");
+        wnoutrefresh(status_window);
+        doupdate();
+        wgetch(status_window);
+    }
 }
 
 void TUI::handle_sample_size(int ch, std::string &message,
