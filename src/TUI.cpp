@@ -12,7 +12,7 @@ TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000) {
     status_window = nullptr;
     menu_items = {"Input Function",
                   "Change Domain",
-                  "Change Variables",
+                  "Change Independent Variable",
                   "Change amount of Sample Points",
                   "Enable Output File",
                   "Set Export Directory",
@@ -406,11 +406,14 @@ void TUI::get_char_input(const std::string &prompt, char &target) {
     noecho();
     curs_set(0);
 
-    if (strlen(input_str) == 1 && isalpha(input_str[0])) {
+    try {
+        if (!isalpha(input_str[0]) || strlen(input_str) != 1) {
+            throw std::invalid_argument("Empty input or non-alphabetic");
+        }
         target = input_str[0];
-    } else {
+    } catch (const std::exception &e) {
         mvwprintw(status_window, 5, 2,
-                  "Invalid input. Please enter an alphabetic character.");
+                  "Invalid input. Please enter a single alphabetic character.");
         wnoutrefresh(status_window);
         doupdate();
         wgetch(status_window);
@@ -483,8 +486,7 @@ void TUI::handle_domain(int ch, std::string &message,
             message = parameters.display_domain();
         } catch (const std::exception &e) {
             mvwprintw(status_window, 5, 2, e.what());
-            parameters.set_end(parameters.get_start() +
-                               10); // Revert to a valid state
+            parameters.set_end(parameters.get_start() + 10);
             message = parameters.display_domain();
             mvwprintw(status_window, 6, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
@@ -548,6 +550,40 @@ void TUI::handle_output_directory(int ch, std::string &message,
                 std::filesystem::current_path());
             message = parameters.display_output_directory_path(
                 STATUS_WINDOW_WIDTH - 4);
+            mvwprintw(status_window, 6, 2, "Press any key to continue...");
+            wnoutrefresh(status_window);
+            doupdate();
+            wgetch(status_window);
+        }
+        break;
+    }
+
+    case 'b':
+    case 'B':
+        continue_interaction = false;
+        return;
+
+    default:
+        break;
+    }
+}
+
+void TUI::handle_variable(int ch, std::string &message,
+                          bool &continue_interaction) {
+    switch (ch) {
+    case 'v':
+    case 'V': {
+        char new_variable;
+        get_char_input("Enter new independent variable character: ",
+                       new_variable);
+
+        try {
+            parameters.set_variable(new_variable);
+            message = parameters.display_variable();
+        } catch (const std::exception &e) {
+            mvwprintw(status_window, 5, 2, e.what());
+            parameters.set_variable('x');
+            message = parameters.display_variable();
             mvwprintw(status_window, 6, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
             doupdate();

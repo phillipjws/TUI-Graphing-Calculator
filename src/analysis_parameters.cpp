@@ -77,7 +77,7 @@ std::string AnalysisParameters::display_output_status() const {
 
 // Display the current variable as a string
 std::string AnalysisParameters::display_variable() const {
-    return std::format("Independant variable: {}", variable_);
+    return std::format("Independent variable: {}", variable_);
 }
 
 // Display the current output directory as a string
@@ -184,5 +184,5 @@ bool AnalysisParameters::is_valid_output_path() const {
 
 // Checks if variable is not reserved
 bool AnalysisParameters::is_valid_variable() const {
-    return reserved_chars.contains(variable_);
+    return !reserved_chars.contains(variable_);
 }
