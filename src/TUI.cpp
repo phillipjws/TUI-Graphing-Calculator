@@ -4,6 +4,8 @@
 #include <map>
 #include <ncurses.h>
 
+constexpr int STATUS_WINDOW_WIDTH = 65;
+
 TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000) {
     menu_window = nullptr;
     status_window = nullptr;
@@ -46,7 +48,7 @@ void TUI::initialize() {
 
     menu_window = newwin(menu_height, menu_width, menu_start_y, menu_start_x);
     keypad(menu_window, TRUE);
-    nodelay(menu_window, TRUE);
+    nodelay(menu_window, FALSE);
     box(menu_window, 0, 0);
 
     wnoutrefresh(stdscr);
@@ -75,7 +77,8 @@ void TUI::terminate() {
 
 void TUI::draw_main() {
     static bool first_draw = true;
-    if (!first_draw) return;
+    if (!first_draw)
+        return;
     first_draw = false;
 
     std::vector<std::string> title = {
@@ -165,7 +168,8 @@ void TUI::execute_command(int command) {
         message = parameters.display_output_status();
         break;
     case 5: // Set Export Directory
-        message = parameters.display_output_directory_path();
+        message =
+            parameters.display_output_directory_path(STATUS_WINDOW_WIDTH - 4);
         break;
     case 6: // Help
         message = "Help is not yet implemented.";
@@ -187,14 +191,14 @@ void TUI::show_status(const std::string &initial_message, int command) {
     getmaxyx(stdscr, max_y, max_x);
 
     int status_height = 10;
-    int status_width = 65;
+    int status_width = STATUS_WINDOW_WIDTH;
     int status_start_y = (max_y - status_height) / 2; // Center vertically
     int status_start_x = (max_x - status_width) / 2;  // Center horizontally
 
     status_window =
         newwin(status_height, status_width, status_start_y, status_start_x);
     keypad(status_window, TRUE);
-    nodelay(status_window, TRUE);
+    nodelay(status_window, FALSE);
 
     bool continue_interaction = true;
     std::string message = initial_message;
@@ -203,7 +207,9 @@ void TUI::show_status(const std::string &initial_message, int command) {
         werase(status_window);
         box(status_window, 0, 0);
 
-        mvwprintw(status_window, 1, 2, "%s", message.c_str());
+        std::string displayed_message = message;
+
+        mvwprintw(status_window, 1, 2, "%s", displayed_message.c_str());
         mvwprintw(status_window, 7, 2, "Press 'B' to go back");
 
         wnoutrefresh(status_window);
@@ -307,7 +313,7 @@ void TUI::get_string_input(const std::string &prompt, std::string &target) {
 
     werase(status_window);
     box(status_window, 0, 0);
-    mvwprintw(status_window, 3, 2, "%s", prompt.c_str());
+    mvwprintw(status_window, 1, 2, "%s", prompt.c_str());
     wnoutrefresh(status_window);
     doupdate();
 
@@ -317,22 +323,24 @@ void TUI::get_string_input(const std::string &prompt, std::string &target) {
     int input_area_width = getmaxx(status_window) - 4;
     int input_area_height = 3;
     WINDOW *input_win =
-        derwin(status_window, input_area_height, input_area_width, 5, 2);
+        derwin(status_window, input_area_height, input_area_width, 2, 2);
     keypad(input_win, TRUE);
 
-    while (true) {
+    bool input_complete = false;
+
+    while (!input_complete) {
         werase(input_win);
         box(input_win, 0, 0);
 
         int start_index = std::max(0, index - input_area_width + 3);
         mvwprintw(input_win, 1, 1, "%s", &input_str[start_index]);
 
-        wnoutrefresh(status_window);
+        wnoutrefresh(input_win);
         doupdate();
 
         ch = wgetch(input_win);
         if (ch == '\n') {
-            break;
+            input_complete = true;
         } else if (ch == KEY_BACKSPACE || ch == 127 || ch == 8) {
             if (index > 0) {
                 input_str[--index] = '\0';
@@ -472,12 +480,15 @@ void TUI::handle_output_directory(int ch, std::string &message,
         get_string_input("Enter new output file directory path: ", new_path);
 
         try {
-            parameters.set_ouput_directory_path(new_path);
-            message = parameters.display_output_directory_path();
+            parameters.set_output_directory_path(new_path);
+            message = parameters.display_output_directory_path(
+                STATUS_WINDOW_WIDTH - 4);
         } catch (const std::exception &e) {
             mvwprintw(status_window, 5, 2, e.what());
-            parameters.set_ouput_directory_path(std::filesystem::current_path());
-            message = parameters.display_output_directory_path();
+            parameters.set_output_directory_path(
+                std::filesystem::current_path());
+            message = parameters.display_output_directory_path(
+                STATUS_WINDOW_WIDTH - 4);
             mvwprintw(status_window, 6, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
             doupdate();

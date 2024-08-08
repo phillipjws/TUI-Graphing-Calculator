@@ -8,8 +8,8 @@
 // Constructor definition
 AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
     : start_(start), end_(end), num_samples_(num_samples), min_step_(0.000001),
-      output_status_(false),
-      output_directory_path_(std::filesystem::current_path()) {
+      output_status_(false) {
+    set_output_directory_path(std::filesystem::current_path());
     if (!is_valid_domain()) {
         throw std::invalid_argument(
             "Invalid Parameters: Start must be less than End");
@@ -60,10 +60,18 @@ std::string AnalysisParameters::display_output_status() const {
 }
 
 // Display the current output directory as a string
-std::string AnalysisParameters::display_output_directory_path() const {
+std::string
+AnalysisParameters::display_output_directory_path(int max_width) const {
     if (output_status_) {
-        return std::format("Current output directory is: {}",
-                           output_directory_path_.string());
+        std::string prompt = "Current output directory is: ";
+        std::string path = output_directory_path_.string();
+
+        int available_space = max_width - prompt.length();
+        if (path.length() > available_space) {
+            path = "..." + path.substr(path.length() - available_space + 3);
+        }
+
+        return std::format("{}{}", prompt, path);
     }
     return "Enable output file is off, will not save any output";
 }
@@ -102,8 +110,12 @@ void AnalysisParameters::set_output_status(bool choice) {
     output_status_ = choice;
 }
 
-void AnalysisParameters::set_ouput_directory_path(std::string new_dir) {
-    output_directory_path_ = new_dir;
+void AnalysisParameters::set_output_directory_path(std::string new_dir) {
+    if (!new_dir.empty() && new_dir.back() != '/') {
+        output_directory_path_ = new_dir + "/";
+    } else {
+        output_directory_path_ = new_dir;
+    }
     if (!is_valid_output_path()) {
         throw std::invalid_argument(
             "Invalid Parameters: Must be an existing directory path.");

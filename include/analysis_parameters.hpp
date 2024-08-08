@@ -20,13 +20,13 @@ class AnalysisParameters {
         std::string display_domain() const;
         std::string display_num_step() const;
         std::string display_output_status() const;
-        std::string display_output_directory_path() const;
+        std::string display_output_directory_path(int max_width) const;
 
         void set_start(int new_start);
         void set_end(int new_end);
         void set_num_samples(int new_samples);
         void set_output_status(bool choice);
-        void set_ouput_directory_path(std::string new_dir);
+        void set_output_directory_path(std::string new_dir);
         bool is_valid_domain() const;
         bool is_valid_samples() const;
         bool is_valid_output_path() const;
