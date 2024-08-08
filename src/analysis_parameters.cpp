@@ -54,6 +54,11 @@ std::filesystem::path AnalysisParameters::get_output_directory_path() const {
     return output_directory_path_;
 }
 
+// Getter for expression_
+std::string AnalysisParameters::get_expression() const {
+    return expression_;
+}
+
 // Display the domain as a string
 std::string AnalysisParameters::display_domain() const {
     return std::format("Domain: [{}, {}]", start_, end_);
@@ -78,7 +83,7 @@ std::string AnalysisParameters::display_variable() const {
     return std::format("Independent variable: {}", variable_);
 }
 
-// Display the current output directory as a string
+// Display the current output directory path as a string
 std::string
 AnalysisParameters::display_output_directory_path(int max_width) const {
     if (output_status_) {
@@ -93,6 +98,11 @@ AnalysisParameters::display_output_directory_path(int max_width) const {
         return std::format("{}{}", prompt, path);
     }
     return "Enable output file is off, will not save any output.";
+}
+
+// Display the current expression as a string
+std::string AnalysisParameters::display_expression() const {
+    return std::format("f({}) = {}", variable_, expression_);
 }
 
 // Setter for start_
@@ -125,6 +135,11 @@ void AnalysisParameters::set_num_samples(int new_samples) {
     }
 }
 
+// Setter for output_status_
+void AnalysisParameters::set_output_status(bool choice) {
+    output_status_ = choice;
+}
+
 // Setter for variable_
 void AnalysisParameters::set_variable(char new_variable) {
     variable_ = new_variable;
@@ -134,12 +149,7 @@ void AnalysisParameters::set_variable(char new_variable) {
     }
 }
 
-// Setter for output_status_
-void AnalysisParameters::set_output_status(bool choice) {
-    output_status_ = choice;
-}
-
-// Setter for output directory path
+// Setter for output_directory_path_
 void AnalysisParameters::set_output_directory_path(std::string new_dir) {
     if (!new_dir.empty() && new_dir.back() != '/') {
         output_directory_path_ = new_dir + "/";
@@ -152,14 +162,12 @@ void AnalysisParameters::set_output_directory_path(std::string new_dir) {
     }
 }
 
-// Update step based on current parameters
-void AnalysisParameters::update_step() {
-    if (num_samples_ > 0) {
-        step_ = static_cast<double>(end_ - start_) / num_samples_;
-    } else {
-        step_ = std::numeric_limits<double>::infinity();
-    }
+// Setter for expression_
+void AnalysisParameters::set_expression(std::string new_expression) {
+    expression_ = new_expression;
 }
+
+
 
 // Check if the current domain parameters are valid
 bool AnalysisParameters::is_valid_domain() const {
@@ -183,4 +191,13 @@ bool AnalysisParameters::is_valid_output_path() const {
 // Checks if variable is not reserved
 bool AnalysisParameters::is_valid_variable() const {
     return !reserved_chars.contains(variable_);
+}
+
+// Update step based on current parameters
+void AnalysisParameters::update_step() {
+    if (num_samples_ > 0) {
+        step_ = static_cast<double>(end_ - start_) / num_samples_;
+    } else {
+        step_ = std::numeric_limits<double>::infinity();
+    }
 }
