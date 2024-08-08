@@ -19,8 +19,6 @@ AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
         'R', // Universal gas constant
         'i', // Imaginary unit
         'j', // Alternative imaginary unit (engineering)
-        'm', // Mass
-        'l', // Length
     };
     set_output_directory_path(std::filesystem::current_path());
     if (!is_valid_domain()) {
