@@ -8,7 +8,20 @@
 // Constructor definition
 AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
     : start_(start), end_(end), num_samples_(num_samples), min_step_(0.000001),
-      output_status_(false) {
+      output_status_(false), variable_('x') {
+    reserved_chars = {
+        'e', // Base of natural logarithm
+        'c', // Speed of light in a vacuum
+        'g', // Acceleration due to gravity
+        'h', // Planck’s constant
+        'k', // Boltzmann constant
+        'G', // Gravitational constant
+        'R', // Universal gas constant
+        'i', // Imaginary unit
+        'j', // Alternative imaginary unit (engineering)
+        'm', // Mass
+        'l', // Length
+    };
     set_output_directory_path(std::filesystem::current_path());
     if (!is_valid_domain()) {
         throw std::invalid_argument(
@@ -34,6 +47,9 @@ double AnalysisParameters::get_min_step() const { return min_step_; }
 
 // Getter for output_status_
 bool AnalysisParameters::get_output_status() const { return output_status_; }
+
+// Getter for variable_
+char AnalysisParameters::get_variable() const { return variable_; }
 
 // Getter for output_directory_path_
 std::filesystem::path AnalysisParameters::get_output_directory_path() const {
@@ -73,7 +89,7 @@ AnalysisParameters::display_output_directory_path(int max_width) const {
 
         return std::format("{}{}", prompt, path);
     }
-    return "Enable output file is off, will not save any output";
+    return "Enable output file is off, will not save any output.";
 }
 
 // Setter for start_
@@ -81,7 +97,7 @@ void AnalysisParameters::set_start(int new_start) {
     start_ = new_start;
     if (!is_valid_domain()) {
         throw std::invalid_argument(
-            "Invalid Parameters: Start must be less than End");
+            "Invalid Parameters: Start must be less than end.");
     }
     update_step();
 }
@@ -91,7 +107,7 @@ void AnalysisParameters::set_end(int new_end) {
     end_ = new_end;
     if (!is_valid_domain()) {
         throw std::invalid_argument(
-            "Invalid Parameters: Start must be less than End");
+            "Invalid Parameters: Start must be less than end.");
     }
     update_step();
 }
@@ -106,6 +122,15 @@ void AnalysisParameters::set_num_samples(int new_samples) {
     }
 }
 
+// Setter for variable_
+void AnalysisParameters::set_variable(char new_variable) {
+    variable_ = new_variable;
+    if(!is_valid_variable()) {
+        throw std::invalid_argument("Invalid Parameters: Variable cannot be a reserved character.");
+    }
+}
+
+// Setter for output_status_
 void AnalysisParameters::set_output_status(bool choice) {
     output_status_ = choice;
 }
@@ -148,4 +173,9 @@ bool AnalysisParameters::is_valid_output_path() const {
         return true;
     }
     return false;
+}
+
+// Checks if variable is not reserved
+bool AnalysisParameters::is_valid_variable() const {
+    return reserved_chars.contains(variable_);
 }
