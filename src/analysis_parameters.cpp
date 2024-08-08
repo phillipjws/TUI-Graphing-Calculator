@@ -1,4 +1,5 @@
 #include "analysis_parameters.hpp"
+#include "tokenizer.hpp"
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -8,7 +9,8 @@
 // Constructor definition
 AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
     : start_(start), end_(end), num_samples_(num_samples), min_step_(0.000001),
-      output_status_(false), variable_('x') {
+      output_status_(false), variable_('x'), old_variable_('x'),
+      expression_("sin(x)") {
     reserved_chars = {
         'e', // Base of natural logarithm
         'c', // Speed of light in a vacuum
@@ -55,9 +57,7 @@ std::filesystem::path AnalysisParameters::get_output_directory_path() const {
 }
 
 // Getter for expression_
-std::string AnalysisParameters::get_expression() const {
-    return expression_;
-}
+std::string AnalysisParameters::get_expression() const { return expression_; }
 
 // Display the domain as a string
 std::string AnalysisParameters::display_domain() const {
@@ -142,11 +142,13 @@ void AnalysisParameters::set_output_status(bool choice) {
 
 // Setter for variable_
 void AnalysisParameters::set_variable(char new_variable) {
+    old_variable_ = variable_;
     variable_ = new_variable;
     if (!is_valid_variable()) {
         throw std::invalid_argument(
             "Invalid Parameters: Variable cannot be a reserved character.");
     }
+    update_expression();
 }
 
 // Setter for output_directory_path_
@@ -166,8 +168,6 @@ void AnalysisParameters::set_output_directory_path(std::string new_dir) {
 void AnalysisParameters::set_expression(std::string new_expression) {
     expression_ = new_expression;
 }
-
-
 
 // Check if the current domain parameters are valid
 bool AnalysisParameters::is_valid_domain() const {
@@ -200,4 +200,12 @@ void AnalysisParameters::update_step() {
     } else {
         step_ = std::numeric_limits<double>::infinity();
     }
+}
+
+// Update expression based on new variable
+void AnalysisParameters::update_expression() {
+    Tokenizer tokenizer;
+    std::vector<std::string> tokens = tokenizer.tokenize(expression_);
+    tokenizer.replace_variable(tokens, old_variable_, variable_);
+    expression_ = tokenizer.reconstruct_expression(tokens);
 }

@@ -41,6 +41,7 @@ class AnalysisParameters {
         bool is_valid_variable() const;
 
         void update_step();
+        void update_expression();
 
     private:
         int start_;
@@ -50,6 +51,7 @@ class AnalysisParameters {
         double min_step_;
         bool output_status_;
         char variable_;
+        char old_variable_;
         std::filesystem::path output_directory_path_;
         std::string expression_;
         std::set<char> reserved_chars;

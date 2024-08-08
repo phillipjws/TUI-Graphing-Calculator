@@ -37,13 +37,15 @@ class TUI {
                                      bool &continue_interaction);
         void handle_variable(int ch, std::string &message,
                              bool &continue_interaction);
+        void handle_function(int ch, std::string &message,
+                             bool &continue_interaction);
 
         WINDOW *main_window;
         WINDOW *menu_window;
         WINDOW *status_window;
         std::vector<std::string> menu_items;
         int highlighted_item;
-        int menu_size = 8;
+        int menu_size = 9;
         AnalysisParameters parameters;
 };
 

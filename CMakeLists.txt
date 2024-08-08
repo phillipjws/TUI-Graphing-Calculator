@@ -15,6 +15,7 @@ add_executable(calculator
     ${PROJECT_SOURCE_DIR}/src/main.cpp
     ${PROJECT_SOURCE_DIR}/src/TUI.cpp
     ${PROJECT_SOURCE_DIR}/src/analysis_parameters.cpp
+    ${PROJECT_SOURCE_DIR}/src/tokenizer.cpp
 )
 
 target_link_libraries(calculator ${CURSES_LIBRARIES})

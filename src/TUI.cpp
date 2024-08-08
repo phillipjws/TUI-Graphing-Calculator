@@ -10,7 +10,8 @@ constexpr int STATUS_WINDOW_WIDTH = 65;
 TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000) {
     menu_window = nullptr;
     status_window = nullptr;
-    menu_items = {"Input Function",
+    menu_items = {"Run",
+                  "Input Function",
                   "Change Domain",
                   "Change Independent Variable",
                   "Change amount of Sample Points",
@@ -174,29 +175,32 @@ void TUI::handle_input() {
 void TUI::execute_command(int command) {
     std::string message;
     switch (command) {
-    case 0: // Input Function
-        message = "Function input is not yet implemented.";
+    case 0: // Run Function
+        message = "Run is not yet implemented";
         break;
-    case 1: // Change Domain/Range
+    case 1: // Input Function
+        message = parameters.display_expression();
+        break;
+    case 2: // Change Domain/Range
         message = parameters.display_domain();
         break;
-    case 2: // Change Variables
+    case 3: // Change Variables
         message = parameters.display_variable();
         break;
-    case 3: // Change Number of Sample Points
+    case 4: // Change Number of Sample Points
         message = parameters.display_num_step();
         break;
-    case 4: // Enable Output File
+    case 5: // Enable Output File
         message = parameters.display_output_status();
         break;
-    case 5: // Set Export Directory
+    case 6: // Set Export Directory
         message =
             parameters.display_output_directory_path(STATUS_WINDOW_WIDTH - 4);
         break;
-    case 6: // Help
+    case 7: // Help
         message = "Help is not yet implemented.";
         break;
-    case 7: // Quit
+    case 8: // Quit
         // Exit the program
         terminate();
         exit(0);
@@ -238,24 +242,28 @@ void TUI::show_status(const std::string &initial_message, int command) {
         doupdate();
 
         if (command == 1) {
-            mvwprintw(status_window, 3, 2,
-                      "Press 'S' to change start or 'E' to change end");
+            mvwprintw(status_window, 3, 2, "Press 'F' to change function");
             wnoutrefresh(status_window);
             doupdate();
         } else if (command == 2) {
             mvwprintw(status_window, 3, 2,
-                      "Press 'V' to change independant variable");
+                      "Press 'S' to change start or 'E' to change end");
             wnoutrefresh(status_window);
             doupdate();
         } else if (command == 3) {
             mvwprintw(status_window, 3, 2,
-                      "Press 'N' to change number of samples");
+                      "Press 'V' to change independant variable");
             wnoutrefresh(status_window);
             doupdate();
         } else if (command == 4) {
             mvwprintw(status_window, 3, 2,
-                      "Press 'T' or 'F' to enable or disable output file");
+                      "Press 'N' to change number of samples");
+            wnoutrefresh(status_window);
+            doupdate();
         } else if (command == 5) {
+            mvwprintw(status_window, 3, 2,
+                      "Press 'T' or 'F' to enable or disable output file");
+        } else if (command == 6) {
             if (parameters.get_output_status()) {
                 mvwprintw(status_window, 3, 2,
                           "Press 'D' to change the output directory");
@@ -265,18 +273,21 @@ void TUI::show_status(const std::string &initial_message, int command) {
         int ch = wgetch(status_window);
         switch (command) {
         case 1:
-            handle_domain(ch, message, continue_interaction);
+            handle_function(ch, message, continue_interaction);
             break;
         case 2:
-            handle_variable(ch, message, continue_interaction);
+            handle_domain(ch, message, continue_interaction);
             break;
         case 3:
-            handle_sample_size(ch, message, continue_interaction);
+            handle_variable(ch, message, continue_interaction);
             break;
         case 4:
-            handle_output_status(ch, message, continue_interaction);
+            handle_sample_size(ch, message, continue_interaction);
             break;
         case 5:
+            handle_output_status(ch, message, continue_interaction);
+            break;
+        case 6:
             if (parameters.get_output_status()) {
                 handle_output_directory(ch, message, continue_interaction);
             }
@@ -584,6 +595,39 @@ void TUI::handle_variable(int ch, std::string &message,
             mvwprintw(status_window, 5, 2, e.what());
             parameters.set_variable('x');
             message = parameters.display_variable();
+            mvwprintw(status_window, 6, 2, "Press any key to continue...");
+            wnoutrefresh(status_window);
+            doupdate();
+            wgetch(status_window);
+        }
+        break;
+    }
+
+    case 'b':
+    case 'B':
+        continue_interaction = false;
+        return;
+
+    default:
+        break;
+    }
+}
+
+void TUI::handle_function(int ch, std::string &message,
+                          bool &continue_interaction) {
+    switch (ch) {
+    case 'f':
+    case 'F': {
+        std::string new_expression;
+        get_string_input("Enter new expression: ", new_expression);
+
+        try {
+            parameters.set_expression(new_expression);
+            message = parameters.display_expression();
+        } catch (const std::exception &e) {
+            mvwprintw(status_window, 5, 2, e.what());
+            parameters.set_expression("sin(x)");
+            message = parameters.display_expression();
             mvwprintw(status_window, 6, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
             doupdate();
