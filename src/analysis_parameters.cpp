@@ -104,6 +104,10 @@ void AnalysisParameters::set_output_status(bool choice) {
 
 void AnalysisParameters::set_ouput_directory_path(std::string new_dir) {
     output_directory_path_ = new_dir;
+    if (!is_valid_output_path()) {
+        throw std::invalid_argument(
+            "Invalid Parameters: Must be an existing directory path.");
+    }
 }
 
 // Update step based on current parameters
@@ -123,4 +127,13 @@ bool AnalysisParameters::is_valid_domain() const {
 // Check if current sample size parameters are valid
 bool AnalysisParameters::is_valid_samples() const {
     return step_ >= min_step_ && num_samples_ > 0;
+}
+
+// Check if output diresctory path exists and is a directory
+bool AnalysisParameters::is_valid_output_path() const {
+    if (std::filesystem::exists(output_directory_path_) &&
+        std::filesystem::is_directory(output_directory_path_)) {
+        return true;
+    }
+    return false;
 }

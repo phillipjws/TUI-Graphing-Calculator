@@ -29,6 +29,7 @@ class AnalysisParameters {
         void set_ouput_directory_path(std::string new_dir);
         bool is_valid_domain() const;
         bool is_valid_samples() const;
+        bool is_valid_output_path() const;
         void update_step();
 
     private:
