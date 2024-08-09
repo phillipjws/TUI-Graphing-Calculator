@@ -229,24 +229,21 @@ bool AnalysisParameters::is_valid_expression(
 
     for (size_t i = 0; i < tokens.size(); ++i) {
         const auto &token = tokens[i];
-
+        // Check if the token is a variable or constant
         if (std::regex_match(token, std::regex(R"([a-zA-Z])"))) {
             if (token != std::string(1, variable_) &&
                 !constants.contains(token)) {
                 return false;
             }
         }
-
+        // Check if the token is a function and followed by '('
         if (std::regex_match(
                 token, std::regex(R"(\b(?:sin|cos|tan|log|ln|sqrt)\b)"))) {
-            // Following token must be '('
             if (i + 1 >= tokens.size() || tokens[i + 1] != "(") {
                 return false; // Function not followed by '('
             }
-
             parentheses_stack.push("(");
             ++i; // Skip the '('
-
             bool valid_argument = false;
             while (!parentheses_stack.empty() && ++i < tokens.size()) {
                 const auto &inner_token = tokens[i];
@@ -262,20 +259,18 @@ bool AnalysisParameters::is_valid_expression(
                                             std::regex(R"([a-zA-Z])"))) {
                     if (inner_token != std::string(1, variable_) &&
                         !constants.contains(inner_token)) {
-                        return false; // Invalid variable or constant inside
-                                      // function
+                        return false;
                     }
                 } else if (std::regex_match(
                                inner_token,
                                std::regex(
                                    R"(\b(?:sin|cos|tan|log|ln|sqrt)\b)"))) {
-                    // If the inner token is another function, recurse into it
                     valid_argument = true;
-                    break; // Exit the loop to allow the outer function to
-                           // continue
-                } else if (!std::regex_match(inner_token,
-                                             std::regex(R"([\+\-\*/\d\.])"))) {
-                    return false; // Invalid token inside function
+                } else if (std::regex_match(inner_token,
+                                            std::regex(R"([\+\-\*/\^\d\.])"))) {
+                    valid_argument = true;
+                } else {
+                    return false;
                 }
             }
             if (!valid_argument) {
@@ -284,7 +279,6 @@ bool AnalysisParameters::is_valid_expression(
             }
             continue; // Skip to the next token after validating the function
         }
-
         if (token == ")") {
             if (parentheses_stack.empty()) {
                 return false; // Unmatched closing parenthesis
@@ -294,7 +288,6 @@ bool AnalysisParameters::is_valid_expression(
             parentheses_stack.push("(");
         }
     }
-
     if (!parentheses_stack.empty()) {
         return false;
     }
