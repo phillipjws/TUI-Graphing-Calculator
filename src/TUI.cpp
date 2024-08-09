@@ -1,6 +1,6 @@
 #include "TUI.hpp"
-#include <cstring>
 #include <cctype>
+#include <cstring>
 #include <iostream>
 #include <ncurses.h>
 
@@ -443,9 +443,7 @@ void TUI::handle_sample_size(int ch, std::string &message,
             message = parameters.display_num_step();
         } catch (const std::exception &e) {
             mvwprintw(status_window, 5, 2, e.what());
-            parameters.set_num_samples(static_cast<int>(
-                (parameters.get_end() - parameters.get_start()) /
-                parameters.get_min_step()));
+            parameters.set_num_samples(10000);
             message = parameters.display_num_step();
             mvwprintw(status_window, 8, 2, "Press any key to continue...");
             wnoutrefresh(status_window);

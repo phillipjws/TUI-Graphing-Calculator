@@ -14,7 +14,6 @@ class AnalysisParameters {
         int get_end() const;
         int get_num_samples() const;
         double get_step() const;
-        double get_min_step() const;
         bool get_output_status() const;
         char get_variable() const;
         std::filesystem::path get_output_directory_path() const;
@@ -47,12 +46,14 @@ class AnalysisParameters {
 
         double evaluate_expression(double variable_value);
 
+        static const int MAX_SAMPLES = 100000;
+        static const int MIN_SAMPLES = 100;
+
     private:
         int start_;
         int end_;
         int num_samples_;
         double step_;
-        double min_step_;
         bool output_status_;
         char variable_;
         char old_variable_;

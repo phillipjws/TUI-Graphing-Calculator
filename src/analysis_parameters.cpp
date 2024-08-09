@@ -9,7 +9,7 @@
 
 // Constructor definition
 AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
-    : start_(start), end_(end), num_samples_(num_samples), min_step_(0.000001),
+    : start_(start), end_(end), num_samples_(num_samples),
       output_status_(false), variable_('x'), old_variable_('x'),
       expression_("sin(x)") {
     reserved_chars = {
@@ -42,9 +42,6 @@ int AnalysisParameters::get_num_samples() const { return num_samples_; }
 
 // Getter for step_
 double AnalysisParameters::get_step() const { return step_; }
-
-// Getter for min_step_
-double AnalysisParameters::get_min_step() const { return min_step_; }
 
 // Getter for output_status_
 bool AnalysisParameters::get_output_status() const { return output_status_; }
@@ -136,8 +133,8 @@ void AnalysisParameters::set_num_samples(int new_samples) {
     num_samples_ = new_samples;
     update_step();
     if (!is_valid_samples()) {
-        throw std::invalid_argument("Invalid Parameters: Step size too small. "
-                                    "Increase the number of samples.");
+        throw std::invalid_argument("Invalid Parameters: Number of samples "
+                                    "must be between 100 and 100000");
     }
 }
 
@@ -186,7 +183,7 @@ bool AnalysisParameters::is_valid_domain() const {
 
 // Check if current sample size parameters are valid
 bool AnalysisParameters::is_valid_samples() const {
-    return step_ >= min_step_ && num_samples_ > 0;
+    return num_samples_ <= MAX_SAMPLES && num_samples_ >= MIN_SAMPLES;
 }
 
 // Check if output diresctory path exists and is a directory
