@@ -1,4 +1,6 @@
 #include "analysis_parameters.hpp"
+#include "ast.hpp"
+#include "parser.hpp"
 #include "tokenizer.hpp"
 #include <filesystem>
 #include <format>
@@ -207,5 +209,15 @@ void AnalysisParameters::update_expression() {
     Tokenizer tokenizer;
     std::vector<std::string> tokens = tokenizer.tokenize(expression_);
     tokenizer.replace_variable(tokens, old_variable_, variable_);
+
+    Parser parser(tokens, variable_values);
+    ast_ = parser.parse();
+
     expression_ = tokenizer.reconstruct_expression(tokens);
+}
+
+// Evaluates current expression
+double AnalysisParameters::evaluate_expression(double variable_value) {
+    variable_values[variable_] = variable_value;
+    return ast_->evaluate();
 }
