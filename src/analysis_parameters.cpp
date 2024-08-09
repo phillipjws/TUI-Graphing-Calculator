@@ -6,6 +6,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <stdexcept>
 
 // Constructor definition
@@ -60,6 +61,11 @@ std::filesystem::path AnalysisParameters::get_output_directory_path() const {
 
 // Getter for expression_
 std::string AnalysisParameters::get_expression() const { return expression_; }
+
+// Getter for reserved_chars
+std::set<char> AnalysisParameters::get_reserved_chars() const {
+    return reserved_chars;
+}
 
 // Display the domain as a string
 std::string AnalysisParameters::display_domain() const {
@@ -210,7 +216,7 @@ void AnalysisParameters::update_expression() {
     std::vector<std::string> tokens = tokenizer.tokenize(expression_);
     tokenizer.replace_variable(tokens, old_variable_, variable_);
 
-    Parser parser(tokens, variable_values);
+    Parser parser(tokens, variable_values, *this);
     ast_ = parser.parse();
 
     expression_ = tokenizer.reconstruct_expression(tokens);

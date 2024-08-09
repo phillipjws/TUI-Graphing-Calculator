@@ -1,6 +1,7 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
+#include "analysis_parameters.hpp"
 #include "ast.hpp"
 #include <memory>
 #include <string>
@@ -10,7 +11,8 @@
 class Parser {
     public:
         Parser(const std::vector<std::string> &toks,
-               std::unordered_map<char, double> &vars);
+               std::unordered_map<char, double> &vars,
+               const AnalysisParameters &parameters);
         std::unique_ptr<ASTNode> parse();
 
     private:
@@ -18,6 +20,7 @@ class Parser {
         size_t current_token_index;
         std::unordered_map<char, double>
             &variable_values; // Reference to variable values map
+        const AnalysisParameters &parameters;
 
         std::unique_ptr<ASTNode> parse_expression();
         std::unique_ptr<ASTNode> parse_term();

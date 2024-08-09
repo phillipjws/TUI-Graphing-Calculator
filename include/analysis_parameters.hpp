@@ -19,6 +19,7 @@ class AnalysisParameters {
         char get_variable() const;
         std::filesystem::path get_output_directory_path() const;
         std::string get_expression() const;
+        std::set<char> get_reserved_chars() const;
 
         std::string display_domain() const;
         std::string display_num_step() const;
