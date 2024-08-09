@@ -2,8 +2,6 @@
 #include <cstring>
 #include <cctype>
 #include <iostream>
-#include <limits>
-#include <map>
 #include <ncurses.h>
 
 constexpr int STATUS_WINDOW_WIDTH = 85;

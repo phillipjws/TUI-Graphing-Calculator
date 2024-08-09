@@ -1,11 +1,8 @@
 #include "analysis_parameters.hpp"
 #include "ast.hpp"
-#include "parser.hpp"
 #include "tokenizer.hpp"
 #include <filesystem>
 #include <format>
-#include <fstream>
-#include <iostream>
 #include <regex>
 #include <set>
 #include <stdexcept>
