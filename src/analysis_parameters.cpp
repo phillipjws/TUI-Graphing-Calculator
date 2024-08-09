@@ -3,9 +3,12 @@
 #include "tokenizer.hpp"
 #include <filesystem>
 #include <format>
+#include <iomanip>
 #include <regex>
 #include <set>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 
 // Constructor definition
 AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
@@ -69,8 +72,23 @@ std::string AnalysisParameters::display_domain() const {
 
 // Display the number of samples and step size
 std::string AnalysisParameters::display_num_step() const {
-    return std::format("Number of samples: {}, Step size: {:.6f}", num_samples_,
-                       step_);
+    std::stringstream ss;
+
+    if (step_ < 0.001) {
+        ss << std::scientific << std::setprecision(1) << step_;
+    } else {
+        ss << std::fixed << std::setprecision(10) << step_;
+        std::string step_str = ss.str();
+        step_str.erase(step_str.find_last_not_of('0') + 1, std::string::npos);
+        if (step_str.back() == '.') {
+            step_str.pop_back();
+        }
+        ss.str("");
+        ss << step_str;
+    }
+
+    return std::format("Number of samples: {}, Step size: {}", num_samples_,
+                       ss.str());
 }
 
 // Display the output status as a string
