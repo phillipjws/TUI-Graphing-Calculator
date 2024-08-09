@@ -34,12 +34,13 @@ class AnalysisParameters {
         void set_output_status(bool choice);
         void set_variable(char new_variable);
         void set_output_directory_path(std::string new_dir);
-        void set_expression(std::string new_expression);
+        void set_expression(const std::string &new_expression);
 
         bool is_valid_domain() const;
         bool is_valid_samples() const;
         bool is_valid_output_path() const;
         bool is_valid_variable() const;
+        bool is_valid_expression(const std::string &expression) const;
 
         void update_step();
         void update_expression();

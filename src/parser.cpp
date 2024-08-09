@@ -84,6 +84,7 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
         }
         current_token_index++;
         auto argument = parse_expression();
+
         if (current_token_index >= tokens.size() ||
             tokens[current_token_index] != ")") {
             throw std::runtime_error(

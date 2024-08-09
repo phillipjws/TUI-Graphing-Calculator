@@ -645,7 +645,3 @@ void TUI::handle_function(int ch, std::string &message,
         break;
     }
 }
-
-void TUI::display_graph(const std::string &function) {
-    // Not yet implemented
-}

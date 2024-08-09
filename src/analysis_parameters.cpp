@@ -6,6 +6,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <set>
 #include <stdexcept>
 
@@ -173,7 +174,11 @@ void AnalysisParameters::set_output_directory_path(std::string new_dir) {
 }
 
 // Setter for expression_
-void AnalysisParameters::set_expression(std::string new_expression) {
+void AnalysisParameters::set_expression(const std::string &new_expression) {
+    if (!is_valid_expression(new_expression)) {
+        throw std::invalid_argument(
+            "Invalid expression. Ensure correct variable and syntax.");
+    }
     expression_ = new_expression;
 }
 
@@ -201,6 +206,74 @@ bool AnalysisParameters::is_valid_variable() const {
     return !reserved_chars.contains(variable_);
 }
 
+// Checks if expression is valid
+bool AnalysisParameters::is_valid_expression(
+    const std::string &expression) const {
+    Tokenizer tokenizer;
+    std::vector<std::string> tokens = tokenizer.tokenize(expression);
+
+    std::stack<std::string> parentheses_stack;
+
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        const auto &token = tokens[i];
+
+        // Check if token is a variable and if it matches the expected variable
+        if (std::regex_match(token, std::regex(R"([a-zA-Z])"))) {
+            if (token != std::string(1, variable_)) {
+                return false;
+            }
+        }
+
+        // Check if token is a function and validate its argument
+        if (std::regex_match(
+                token, std::regex(R"(\b(?:sin|cos|tan|log|ln|sqrt)\b)"))) {
+            // Following token must be '('
+            if (i + 1 >= tokens.size() || tokens[i + 1] != "(") {
+                return false; // Function not followed by '('
+            }
+
+            // Validate the contents inside the parentheses
+            parentheses_stack.push("(");
+            ++i; // Skip the '('
+
+            bool valid_argument = false;
+            while (!parentheses_stack.empty() && ++i < tokens.size()) {
+                const auto &inner_token = tokens[i];
+
+                if (inner_token == "(") {
+                    parentheses_stack.push("(");
+                } else if (inner_token == ")") {
+                    parentheses_stack.pop();
+                    if (parentheses_stack.empty()) {
+                        valid_argument = true;
+                    }
+                } else if (std::regex_match(inner_token,
+                                            std::regex(R"([a-zA-Z])"))) {
+                    if (inner_token != std::string(1, variable_)) {
+                        return false; // Invalid variable inside function
+                    }
+                } else if (!std::regex_match(inner_token,
+                                             std::regex(R"([\+\-\*/\d\.])"))) {
+                    return false; // Invalid token inside function
+                }
+            }
+
+            if (!valid_argument) {
+                return false; // Mismatched parentheses or invalid function
+                              // argument
+            }
+        }
+
+        // If there's still an open parenthesis without a closing one, it's
+        // invalid
+        if (!parentheses_stack.empty()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // Update step based on current parameters
 void AnalysisParameters::update_step() {
     if (num_samples_ > 0) {
@@ -212,14 +285,19 @@ void AnalysisParameters::update_step() {
 
 // Update expression based on new variable
 void AnalysisParameters::update_expression() {
+    // Update the expression to replace the old variable with the new one
     Tokenizer tokenizer;
     std::vector<std::string> tokens = tokenizer.tokenize(expression_);
     tokenizer.replace_variable(tokens, old_variable_, variable_);
 
-    Parser parser(tokens, variable_values, *this);
-    ast_ = parser.parse();
+    // Revalidate the updated expression
+    std::string updated_expression = tokenizer.reconstruct_expression(tokens);
+    if (!is_valid_expression(updated_expression)) {
+        throw std::invalid_argument("Invalid Parameters: Expression is not "
+                                    "valid with the new variable.");
+    }
 
-    expression_ = tokenizer.reconstruct_expression(tokens);
+    expression_ = updated_expression;
 }
 
 // Evaluates current expression
