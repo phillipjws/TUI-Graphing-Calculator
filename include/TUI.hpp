@@ -39,6 +39,7 @@ class TUI {
                              bool &continue_interaction);
         void handle_function(int ch, std::string &message,
                              bool &continue_interaction);
+        void run_calculation();
 
         WINDOW *main_window;
         WINDOW *menu_window;

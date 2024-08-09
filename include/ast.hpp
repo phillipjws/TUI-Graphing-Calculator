@@ -56,4 +56,10 @@ class FunctionNode : public ASTNode {
         std::unique_ptr<ASTNode> argument;
 };
 
+// Function declarations
+std::unique_ptr<ASTNode>
+generate_ast_from_expression(const std::string &expression);
+double evaluate_expression(const std::unique_ptr<ASTNode> &ast,
+                           double variable_value);
+
 #endif // AST_HPP

@@ -1,4 +1,7 @@
 #include "ast.hpp"
+#include "analysis_parameters.hpp"
+#include "parser.hpp"
+#include "tokenizer.hpp"
 #include <cmath>
 #include <stdexcept>
 
@@ -11,7 +14,29 @@ double NumberNode::evaluate() const { return value; }
 VariableNode::VariableNode(char var, std::unordered_map<char, double> &vars)
     : name(var), variable_values(vars) {}
 
-double VariableNode::evaluate() const { return variable_values[name]; }
+double VariableNode::evaluate() const {
+    // Handle known constants
+    if (name == 'e')
+        return M_E; // Natural log base
+    if (name == 'c')
+        return 299792458.0; // Speed of light in vacuum (m/s)
+    if (name == 'g')
+        return 9.80665; // Acceleration due to gravity (m/s^2)
+    if (name == 'h')
+        return 6.62607015e-34; // Planck's constant (J·s)
+    if (name == 'k')
+        return 1.380649e-23; // Boltzmann constant (J/K)
+    if (name == 'G')
+        return 6.67430e-11; // Gravitational constant (m^3·kg^-1·s^-2)
+    if (name == 'R')
+        return 8.314462618; // Universal gas constant (J/(mol·K))
+
+    // Handle pi separately
+    if (std::string(1, name) == "pi")
+        return M_PI;
+
+    return variable_values[name];
+}
 
 // BinaryOpNode Implementation
 BinaryOpNode::BinaryOpNode(char oper, std::unique_ptr<ASTNode> l,
@@ -56,4 +81,23 @@ double FunctionNode::evaluate() const {
     if (func == "sqrt")
         return sqrt(arg_val);
     throw std::runtime_error("Unknown function");
+}
+
+double evaluate_expression(const std::unique_ptr<ASTNode> &ast,
+                           double variable_value) {
+    // Assuming variable substitution is handled inside the AST itself
+    return ast->evaluate();
+}
+
+std::unique_ptr<ASTNode>
+generate_ast_from_expression(const std::string &expression) {
+    // Create the tokenizer and parser
+    Tokenizer tokenizer;
+    auto tokens = tokenizer.tokenize(expression);
+
+    std::unordered_map<char, double> variables;
+    AnalysisParameters params(-100, 100, 10000);
+
+    Parser parser(tokens, variables, params);
+    return parser.parse(); // This should return the root node of the AST
 }

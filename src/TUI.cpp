@@ -1,6 +1,7 @@
 #include "TUI.hpp"
 #include <cctype>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <ncurses.h>
 
@@ -175,8 +176,8 @@ void TUI::execute_command(int command) {
     std::string message;
     switch (command) {
     case 0: // Run Function
-        message = "Run is not yet implemented";
-        break;
+        run_calculation();
+        return;
     case 1: // Input Function
         message = parameters.display_expression();
         break;
@@ -640,5 +641,63 @@ void TUI::handle_function(int ch, std::string &message,
 
     default:
         break;
+    }
+}
+
+void TUI::run_calculation() {
+    // Get the start, end, and step size from parameters
+    double start = parameters.get_start();
+    double end = parameters.get_end();
+    double step = parameters.get_step();
+
+    // Generate the AST from the expression
+    std::unique_ptr<ASTNode> ast;
+    try {
+        ast = generate_ast_from_expression(parameters.get_expression());
+    } catch (const std::exception &e) {
+        show_status("Error generating AST: " + std::string(e.what()), 0);
+        return;
+    }
+
+    // Evaluate the expression over the range
+    std::vector<std::pair<double, double>> results;
+    try {
+        for (double x = start; x <= end; x += step) {
+            double y = evaluate_expression(ast, x);
+            results.emplace_back(x, y);
+        }
+    } catch (const std::exception &e) {
+        show_status("Error during evaluation: " + std::string(e.what()), 0);
+        return;
+    }
+
+    // If output is enabled, write to file
+    if (parameters.get_output_status()) {
+        std::string filename;
+        get_string_input("Enter filename for output (without extension): ",
+                         filename);
+        std::string filepath =
+            parameters.get_output_directory_path().string() + filename + ".txt";
+
+        std::ofstream outfile(filepath);
+        if (!outfile) {
+            show_status("Error opening file for writing: " + filepath, 0);
+            return;
+        }
+
+        for (const auto &[x, y] : results) {
+            outfile << x << " " << y << "\n";
+        }
+
+        outfile.close();
+        show_status("Results saved to " + filepath, 0);
+    } else {
+        // Otherwise, print the results to the status window
+        std::string result_display;
+        for (const auto &[x, y] : results) {
+            result_display +=
+                std::to_string(x) + " " + std::to_string(y) + "\n";
+        }
+        show_status(result_display, 0);
     }
 }
