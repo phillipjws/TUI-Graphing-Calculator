@@ -5,7 +5,7 @@
 #include <map>
 #include <ncurses.h>
 
-constexpr int STATUS_WINDOW_WIDTH = 65;
+constexpr int STATUS_WINDOW_WIDTH = 85;
 
 TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000) {
     menu_window = nullptr;
@@ -236,7 +236,7 @@ void TUI::show_status(const std::string &initial_message, int command) {
         std::string displayed_message = message;
 
         mvwprintw(status_window, 1, 2, "%s", displayed_message.c_str());
-        mvwprintw(status_window, 7, 2, "Press 'B' to go back");
+        mvwprintw(status_window, 8, 2, "Press 'B' to go back");
 
         wnoutrefresh(status_window);
         doupdate();
@@ -448,7 +448,7 @@ void TUI::handle_sample_size(int ch, std::string &message,
                 (parameters.get_end() - parameters.get_start()) /
                 parameters.get_min_step()));
             message = parameters.display_num_step();
-            mvwprintw(status_window, 6, 2, "Press any key to continue...");
+            mvwprintw(status_window, 8, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
             doupdate();
             wgetch(status_window);
@@ -480,7 +480,7 @@ void TUI::handle_domain(int ch, std::string &message,
             mvwprintw(status_window, 5, 2, e.what());
             parameters.set_start(parameters.get_end() - 10);
             message = parameters.display_domain();
-            mvwprintw(status_window, 6, 2, "Press any key to continue...");
+            mvwprintw(status_window, 8, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
             doupdate();
             wgetch(status_window);
@@ -499,7 +499,7 @@ void TUI::handle_domain(int ch, std::string &message,
             mvwprintw(status_window, 5, 2, e.what());
             parameters.set_end(parameters.get_start() + 10);
             message = parameters.display_domain();
-            mvwprintw(status_window, 6, 2, "Press any key to continue...");
+            mvwprintw(status_window, 8, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
             doupdate();
             wgetch(status_window);
@@ -561,7 +561,7 @@ void TUI::handle_output_directory(int ch, std::string &message,
                 std::filesystem::current_path());
             message = parameters.display_output_directory_path(
                 STATUS_WINDOW_WIDTH - 4);
-            mvwprintw(status_window, 6, 2, "Press any key to continue...");
+            mvwprintw(status_window, 8, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
             doupdate();
             wgetch(status_window);
@@ -595,7 +595,7 @@ void TUI::handle_variable(int ch, std::string &message,
             mvwprintw(status_window, 5, 2, e.what());
             parameters.set_variable('x');
             message = parameters.display_variable();
-            mvwprintw(status_window, 6, 2, "Press any key to continue...");
+            mvwprintw(status_window, 8, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
             doupdate();
             wgetch(status_window);
@@ -628,7 +628,7 @@ void TUI::handle_function(int ch, std::string &message,
             mvwprintw(status_window, 5, 2, e.what());
             parameters.set_expression("sin(x)");
             message = parameters.display_expression();
-            mvwprintw(status_window, 6, 2, "Press any key to continue...");
+            mvwprintw(status_window, 8, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
             doupdate();
             wgetch(status_window);

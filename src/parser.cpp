@@ -52,7 +52,7 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
         auto node = parse_expression();
         if (current_token_index >= tokens.size() ||
             tokens[current_token_index] != ")") {
-            throw std::runtime_error("Error: Missing closing parenthesis.");
+            throw std::invalid_argument("Missing closing parenthesis.");
         }
         current_token_index++;
         return node;
@@ -69,8 +69,8 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
         char variable = tokens[current_token_index++][0];
         if (variable != parameters.get_variable() &&
             !parameters.get_reserved_chars().contains(variable)) {
-            throw std::runtime_error("Error: Unexpected variable '" +
-                                     std::string(1, variable) + "' found.");
+            throw std::invalid_argument("Unexpected variable '" +
+                                        std::string(1, variable) + "' found.");
         }
         return std::make_unique<VariableNode>(variable, variable_values);
     }
@@ -79,21 +79,30 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
                          std::regex(R"(\b(?:sin|cos|tan|log|ln|sqrt)\b)"))) {
         std::string func = tokens[current_token_index++];
         if (tokens[current_token_index] != "(") {
-            throw std::runtime_error("Error: Expected '(' after function '" +
-                                     func + "'.");
+            throw std::invalid_argument("Expected '(' after function '" + func +
+                                        "'.");
         }
         current_token_index++;
         auto argument = parse_expression();
 
+        std::string variable_token = tokens[current_token_index - 2];
+        if (variable_token.size() == 1 &&
+            variable_token[0] != parameters.get_variable()) {
+            throw std::invalid_argument(
+                "Incorrect variable used in function argument. Expected "
+                "variable: '" +
+                std::string(1, parameters.get_variable()) + "'.");
+        }
+
         if (current_token_index >= tokens.size() ||
             tokens[current_token_index] != ")") {
-            throw std::runtime_error(
-                "Error: Expected ')' after function argument.");
+            throw std::invalid_argument(
+                "Expected ')' after function argument.");
         }
         current_token_index++;
         return std::make_unique<FunctionNode>(func, std::move(argument));
     }
 
-    throw std::runtime_error("Error: Invalid token '" +
-                             tokens[current_token_index] + "' in expression.");
+    throw std::invalid_argument(
+        "Invalid token '" + tokens[current_token_index] + "' in expression.");
 }

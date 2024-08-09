@@ -211,20 +211,20 @@ bool AnalysisParameters::is_valid_expression(
     const std::string &expression) const {
     Tokenizer tokenizer;
     std::vector<std::string> tokens = tokenizer.tokenize(expression);
-
     std::stack<std::string> parentheses_stack;
+    std::set<std::string> constants = {"e", "c", "g", "h", "k",
+                                       "G", "R", "i", "j", "pi"};
 
     for (size_t i = 0; i < tokens.size(); ++i) {
         const auto &token = tokens[i];
 
-        // Check if token is a variable and if it matches the expected variable
         if (std::regex_match(token, std::regex(R"([a-zA-Z])"))) {
-            if (token != std::string(1, variable_)) {
+            if (token != std::string(1, variable_) &&
+                !constants.contains(token)) {
                 return false;
             }
         }
 
-        // Check if token is a function and validate its argument
         if (std::regex_match(
                 token, std::regex(R"(\b(?:sin|cos|tan|log|ln|sqrt)\b)"))) {
             // Following token must be '('
@@ -232,7 +232,6 @@ bool AnalysisParameters::is_valid_expression(
                 return false; // Function not followed by '('
             }
 
-            // Validate the contents inside the parentheses
             parentheses_stack.push("(");
             ++i; // Skip the '('
 
@@ -249,26 +248,43 @@ bool AnalysisParameters::is_valid_expression(
                     }
                 } else if (std::regex_match(inner_token,
                                             std::regex(R"([a-zA-Z])"))) {
-                    if (inner_token != std::string(1, variable_)) {
-                        return false; // Invalid variable inside function
+                    if (inner_token != std::string(1, variable_) &&
+                        !constants.contains(inner_token)) {
+                        return false; // Invalid variable or constant inside
+                                      // function
                     }
+                } else if (std::regex_match(
+                               inner_token,
+                               std::regex(
+                                   R"(\b(?:sin|cos|tan|log|ln|sqrt)\b)"))) {
+                    // If the inner token is another function, recurse into it
+                    valid_argument = true;
+                    break; // Exit the loop to allow the outer function to
+                           // continue
                 } else if (!std::regex_match(inner_token,
                                              std::regex(R"([\+\-\*/\d\.])"))) {
                     return false; // Invalid token inside function
                 }
             }
-
             if (!valid_argument) {
                 return false; // Mismatched parentheses or invalid function
                               // argument
             }
+            continue; // Skip to the next token after validating the function
         }
 
-        // If there's still an open parenthesis without a closing one, it's
-        // invalid
-        if (!parentheses_stack.empty()) {
-            return false;
+        if (token == ")") {
+            if (parentheses_stack.empty()) {
+                return false; // Unmatched closing parenthesis
+            }
+            parentheses_stack.pop();
+        } else if (token == "(") {
+            parentheses_stack.push("(");
         }
+    }
+
+    if (!parentheses_stack.empty()) {
+        return false;
     }
 
     return true;
