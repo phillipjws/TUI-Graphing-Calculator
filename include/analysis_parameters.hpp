@@ -1,14 +1,14 @@
 #ifndef ANALYSIS_PARAMETERS_HPP
 #define ANALYSIS_PARAMETERS_HPP
 
+#include "ast.hpp"
 #include <filesystem>
 #include <set>
 #include <string>
 
 class AnalysisParameters {
     public:
-        AnalysisParameters(int start = -100, int end = 100,
-                           int num_samples = 10000);
+        AnalysisParameters(int start, int end, int num_samples);
 
         int get_start() const;
         int get_end() const;
@@ -43,6 +43,8 @@ class AnalysisParameters {
         void update_step();
         void update_expression();
 
+        double evaluate_expression(double variable_value);
+
     private:
         int start_;
         int end_;
@@ -54,7 +56,9 @@ class AnalysisParameters {
         char old_variable_;
         std::filesystem::path output_directory_path_;
         std::string expression_;
+        std::unordered_map<char, double> variable_values;
         std::set<char> reserved_chars;
+        std::unique_ptr<ASTNode> ast_;
 };
 
 #endif // ANALYSIS_PARAMETERS_HPP
