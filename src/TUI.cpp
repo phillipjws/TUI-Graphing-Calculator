@@ -74,6 +74,9 @@ void TUI::terminate() {
     if (status_window) {
         delwin(status_window);
     }
+    if (result_window) {
+        delwin(result_window);
+    }
     endwin();
 }
 
@@ -131,7 +134,6 @@ void TUI::draw_main() {
 }
 
 void TUI::draw_menu() {
-    // Clear and redraw the menu window
     werase(menu_window);
     box(menu_window, 0, 0);
 
@@ -645,20 +647,18 @@ void TUI::handle_function(int ch, std::string &message,
 }
 
 void TUI::run_calculation() {
-    // Get the start, end, and step size from parameters
     double start = parameters.get_start();
     double end = parameters.get_end();
     double step = parameters.get_step();
 
-    // Evaluate the expression over the range using the stored AST
     std::vector<std::pair<double, double>> results;
     for (double x = start; x <= end; x += step) {
         parameters.set_variable_value(parameters.get_variable(), x);
-        double y =
-            parameters.evaluate_expression(x); // Evaluate using the stored AST
+        double y = parameters.evaluate_expression(x);
         results.emplace_back(x, y);
     }
 
+    // TODO: Change this from using status_window
     if (parameters.get_output_status()) {
         // If output is enabled, write to file
         std::string filename;
@@ -681,12 +681,95 @@ void TUI::run_calculation() {
         outfile.close();
         show_status("Results saved to " + filepath, 0);
     } else {
-        // Otherwise, print the results to the status window
-        std::string result_display;
-        for (const auto &[x, y] : results) {
-            result_display +=
-                std::to_string(x) + " " + std::to_string(y) + "\n";
-        }
-        show_status(result_display, 0);
+        show_results(results);
     }
+}
+
+void TUI::show_results(const std::vector<std::pair<double, double>> &results) {
+    int max_x, max_y;
+    getmaxyx(stdscr, max_y, max_x);
+
+    int max_length = 0;
+    for (const auto &[x, y] : results) {
+        std::string x_str = std::to_string(x);
+        std::string y_str = std::to_string(y);
+        // Truncate or adjust the precision manually if needed
+        if (x_str.length() > max_length)
+            max_length = x_str.length();
+        if (y_str.length() > max_length)
+            max_length = y_str.length();
+    }
+
+    int result_height = static_cast<int>(max_y * 2 / 3.0) + 1;
+    int padding = 4;
+    int column_width = max_length + 4 * padding;
+    int result_width = 2 * column_width;
+    int result_start_y = (max_y - result_height) / 2;
+    int result_start_x = (max_x - result_width) / 2;
+
+    result_window =
+        newwin(result_height, result_width, result_start_y, result_start_x);
+    keypad(result_window, TRUE);
+    nodelay(result_window, FALSE);
+
+    int items_per_page = (result_height - 5);
+    int total_pages = (results.size() + items_per_page * 2 - 1) /
+                      (items_per_page * 2); // Total number of pages
+    int current_page = 0;
+
+    bool continue_interaction = true;
+
+    while (continue_interaction) {
+        werase(result_window);
+        box(result_window, 0, 0);
+
+        int start_index = current_page * items_per_page * 2;
+        int end_index = std::min(start_index + items_per_page * 2,
+                                 static_cast<int>(results.size()));
+
+        for (int i = start_index; i < end_index; ++i) {
+            int row = (i - start_index) % items_per_page;
+            int col = (i - start_index) / items_per_page;
+
+            mvwprintw(result_window, row + 1, col * (result_width / 2) + 3,
+                      "%-10.3f %-10.3f", results[i].first, results[i].second);
+        }
+
+        std::string page_info = "Page " + std::to_string(current_page + 1) +
+                                " of " + std::to_string(total_pages);
+        mvwprintw(result_window, result_height - 3,
+                  (result_width - page_info.size()) / 2, "%s",
+                  page_info.c_str());
+        mvwprintw(result_window, result_height - 2, (result_width - 21) / 2,
+                  "Press 'B' to go back");
+
+        wnoutrefresh(result_window);
+        doupdate();
+
+        int ch = wgetch(result_window);
+        switch (ch) {
+        case KEY_LEFT:
+            if (current_page > 0) {
+                --current_page;
+            }
+            break;
+        case KEY_RIGHT:
+            if (current_page < total_pages - 1) {
+                ++current_page;
+            }
+            break;
+        case 'b':
+        case 'B':
+            continue_interaction = false;
+            break;
+        default:
+            break;
+        }
+    }
+
+    delwin(result_window);
+    result_window = nullptr;
+
+    touchwin(stdscr);
+    refresh();
 }

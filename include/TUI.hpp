@@ -21,6 +21,8 @@ class TUI {
         void handle_input();
         void execute_command(int command);
         void show_status(const std::string &message, int command);
+        void
+        show_results(const std::vector<std::pair<double, double>> &results);
         void display_graph(const std::string &function);
 
         void get_single_number_input(const std::string &prompt, int &target);
@@ -44,6 +46,7 @@ class TUI {
         WINDOW *main_window;
         WINDOW *menu_window;
         WINDOW *status_window;
+        WINDOW *result_window;
         std::vector<std::string> menu_items;
         int highlighted_item;
         int menu_size = 9;
