@@ -19,6 +19,26 @@ VariableNode::VariableNode(char var, AnalysisParameters &params)
     : name(var), parameters(params) {}
 
 double VariableNode::evaluate() const {
+    switch (name) {
+    case 'e':
+        return M_E; // Natural log base
+    case 'c':
+        return 299792458.0; // Speed of light in vacuum (m/s)
+    case 'g':
+        return 9.80665; // Acceleration due to gravity (m/s^2)
+    case 'h':
+        return 6.62607015e-34; // Planck's constant (J·s)
+    case 'k':
+        return 1.380649e-23; // Boltzmann constant (J/K)
+    case 'G':
+        return 6.67430e-11; // Gravitational constant (m^3·kg^-1·s^-2)
+    case 'R':
+        return 8.314462618; // Universal gas constant (J/(mol·K))
+    }
+
+    if (std::string(1, name) == "pi")
+        return M_PI;
+
     return parameters.get_variable_value(
         name); // Get the value from AnalysisParameters
 }
