@@ -661,28 +661,66 @@ void TUI::run_calculation() {
     // TODO: Change this from using status_window
     if (parameters.get_output_status()) {
         // If output is enabled, write to file
-        std::string filename;
-        get_string_input("Enter filename for output (without extension): ",
-                         filename);
-        std::string filepath =
-            (parameters.get_output_directory_path() / filename).string() +
-            ".txt";
-        std::ofstream outfile(filepath);
-
-        if (!outfile) {
-            show_status("Error opening file for writing.", 0);
-            return;
-        }
-
-        for (const auto &[x, y] : results) {
-            outfile << x << " " << y << "\n";
-        }
-
-        outfile.close();
-        show_status("Results saved to " + filepath, 0);
+        write_results_to_file(results);
     } else {
         show_results(results);
     }
+}
+
+void TUI::write_results_to_file(
+    const std::vector<std::pair<double, double>> &results) {
+    int max_x, max_y;
+    getmaxyx(stdscr, max_y, max_x);
+
+    int status_height = 10;
+    int status_width = STATUS_WINDOW_WIDTH;
+    int status_start_y = (max_y - status_height) / 2; // Center vertically
+    int status_start_x = (max_x - status_width) / 2;  // Center horizontally
+
+    status_window =
+        newwin(status_height, status_width, status_start_y, status_start_x);
+    keypad(status_window, TRUE);   // Enable keypad input
+    nodelay(status_window, FALSE); // Disable non-blocking input
+
+    std::string filename;
+    get_string_input(
+        "Enter filename to save to, output will save to <filename>.txt: ",
+        filename);
+
+    std::string filepath =
+        (parameters.get_output_directory_path() / filename).string() + ".txt";
+
+    std::ofstream outfile(filepath);
+
+    werase(status_window);
+    box(status_window, 0, 0);
+
+    if (!outfile) {
+        mvwprintw(status_window, 1, 2, "Error opening output file.");
+    } else {
+        for (const auto &[x, y] : results) {
+            outfile << x << " " << y << "\n";
+        }
+        mvwprintw(status_window, 3, 2, "Results written to: %s.txt",
+                  filename.c_str());
+    }
+
+    mvwprintw(status_window, 8, 2, "Press 'B' to go back");
+
+    wnoutrefresh(status_window);
+    doupdate();
+
+    // Wait for 'B' or 'b' key press to close the window
+    int ch;
+    while ((ch = wgetch(status_window)) != 'b' && ch != 'B') {
+        // Do nothing, just wait for 'B' or 'b'
+    }
+
+    delwin(status_window);
+    status_window = nullptr;
+
+    touchwin(stdscr);
+    refresh();
 }
 
 void TUI::show_results(const std::vector<std::pair<double, double>> &results) {

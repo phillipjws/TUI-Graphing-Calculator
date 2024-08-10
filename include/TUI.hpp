@@ -21,6 +21,8 @@ class TUI {
         void handle_input();
         void execute_command(int command);
         void show_status(const std::string &message, int command);
+        void write_results_to_file(
+            const std::vector<std::pair<double, double>> &results);
         void
         show_results(const std::vector<std::pair<double, double>> &results);
         void display_graph(const std::string &function);
