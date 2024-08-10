@@ -3,8 +3,10 @@
 
 #include "ast.hpp"
 #include <filesystem>
+#include <memory>
 #include <set>
 #include <string>
+#include <unordered_map>
 
 class AnalysisParameters {
     public:
@@ -16,6 +18,7 @@ class AnalysisParameters {
         double get_step() const;
         bool get_output_status() const;
         char get_variable() const;
+        double get_variable_value(char variable) const;  // New getter method
         std::filesystem::path get_output_directory_path() const;
         std::string get_expression() const;
         std::set<char> get_reserved_chars() const;
@@ -46,7 +49,7 @@ class AnalysisParameters {
 
         double evaluate_expression(double variable_value);
 
-        void set_variable_value(char variable, double value);
+        void set_variable_value(char variable, double value);  // New setter method
 
         static const int MAX_SAMPLES = 100000;
         static const int MIN_SAMPLES = 100;
@@ -61,7 +64,7 @@ class AnalysisParameters {
         char old_variable_;
         std::filesystem::path output_directory_path_;
         std::string expression_;
-        std::unordered_map<char, double> variable_values;
+        std::unordered_map<char, double> variable_values;  // Stores variable values
         std::set<char> reserved_chars;
         std::unique_ptr<ASTNode> ast_;
 };

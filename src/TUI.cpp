@@ -650,19 +650,13 @@ void TUI::run_calculation() {
     double end = parameters.get_end();
     double step = parameters.get_step();
 
-    // Generate the AST from the expression using the current parameters
-    std::unique_ptr<ASTNode> ast =
-        generate_ast_from_expression(parameters.get_expression(), parameters);
-
-    // Evaluate the expression over the range
+    // Evaluate the expression over the range using the stored AST
     std::vector<std::pair<double, double>> results;
     for (double x = start; x <= end; x += step) {
-        parameters.set_variable_value(
-            parameters.get_variable(),
-            x); // Set the current value of the variable (e.g., 'x')
+        parameters.set_variable_value(parameters.get_variable(), x);
         double y =
-            ast->evaluate(); // Evaluate the AST for the current value of 'x'
-        results.emplace_back(x, y); // Store the result (x, y)
+            parameters.evaluate_expression(x); // Evaluate using the stored AST
+        results.emplace_back(x, y);
     }
 
     if (parameters.get_output_status()) {

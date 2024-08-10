@@ -12,9 +12,9 @@
 
 // Constructor definition
 AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
-    : start_(start), end_(end), num_samples_(num_samples),
-      output_status_(false), variable_('x'), old_variable_('x'),
-      expression_("sin(x)") {
+    : output_status_(false), variable_('x'), old_variable_('x') {
+
+    // Initialize reserved characters
     reserved_chars = {
         'e', // Base of natural logarithm
         'c', // Speed of light in a vacuum
@@ -26,12 +26,15 @@ AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
         'i', // Imaginary unit
         'j', // Alternative imaginary unit (engineering)
     };
-    set_output_directory_path(std::filesystem::current_path());
-    if (!is_valid_domain()) {
-        throw std::invalid_argument(
-            "Invalid Parameters: Start must be less than End");
-    }
-    update_step();
+
+    // Use setters to initialize members
+    set_start(start);
+    set_end(end);
+    set_num_samples(num_samples);
+    set_output_status(false);  // Assuming default is false
+    set_variable('x');  // Set the default variable to 'x'
+    set_output_directory_path(std::filesystem::current_path().string());
+    set_expression("sin(x)");  // This initializes the AST with the default expression
 }
 
 // Getter for start_
@@ -51,6 +54,15 @@ bool AnalysisParameters::get_output_status() const { return output_status_; }
 
 // Getter for variable_
 char AnalysisParameters::get_variable() const { return variable_; }
+
+// Getter for variable value
+double AnalysisParameters::get_variable_value(char variable) const {
+    auto it = variable_values.find(variable);
+    if (it != variable_values.end()) {
+        return it->second;
+    }
+    throw std::runtime_error("Variable not found: " + std::string(1, variable));
+}
 
 // Getter for output_directory_path_
 std::filesystem::path AnalysisParameters::get_output_directory_path() const {
@@ -187,11 +199,21 @@ void AnalysisParameters::set_output_directory_path(std::string new_dir) {
 
 // Setter for expression_
 void AnalysisParameters::set_expression(const std::string &new_expression) {
+    // Check if the expression is valid before setting it
     if (!is_valid_expression(new_expression)) {
         throw std::invalid_argument(
             "Invalid expression. Ensure correct variable and syntax.");
     }
+
     expression_ = new_expression;
+
+    // Attempt to generate the AST, and catch any errors
+    try {
+        ast_ = generate_ast_from_expression(expression_, *this);
+    } catch (const std::exception &e) {
+        throw std::invalid_argument(
+            std::string("Failed to initialize AST: ") + e.what());
+    }
 }
 
 // Check if the current domain parameters are valid
@@ -204,7 +226,7 @@ bool AnalysisParameters::is_valid_samples() const {
     return num_samples_ <= MAX_SAMPLES && num_samples_ >= MIN_SAMPLES;
 }
 
-// Check if output diresctory path exists and is a directory
+// Check if output directory path exists and is a directory
 bool AnalysisParameters::is_valid_output_path() const {
     if (std::filesystem::exists(output_directory_path_) &&
         std::filesystem::is_directory(output_directory_path_)) {
@@ -324,7 +346,10 @@ void AnalysisParameters::update_expression() {
 // Evaluates current expression
 double AnalysisParameters::evaluate_expression(double variable_value) {
     variable_values[variable_] = variable_value;
-    return ast_->evaluate();
+    if (!ast_) {
+        throw std::runtime_error("AST is not initialized.");
+    }
+    return ast_->evaluate(); // Evaluate using the stored AST
 }
 
 // Updates the map with the current value of the variable

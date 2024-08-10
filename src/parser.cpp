@@ -1,15 +1,13 @@
 #include "parser.hpp"
-#include "analysis_parameters.hpp"
 #include <regex>
 #include <stdexcept>
 
-Parser::Parser(const std::vector<std::string> &toks,
-               std::unordered_map<char, double> &vars,
-               const AnalysisParameters &params)
-    : tokens(toks), current_token_index(0), variable_values(vars),
-      parameters(params) {}
+Parser::Parser(const std::vector<std::string> &toks, AnalysisParameters &params)
+    : tokens(toks), current_token_index(0), parameters(params) {}
 
-std::unique_ptr<ASTNode> Parser::parse() { return parse_expression(); }
+std::unique_ptr<ASTNode> Parser::parse() {
+    return parse_expression();
+}
 
 std::unique_ptr<ASTNode> Parser::parse_expression() {
     auto node = parse_term();
@@ -47,6 +45,7 @@ std::unique_ptr<ASTNode> Parser::parse_factor() {
 }
 
 std::unique_ptr<ASTNode> Parser::parse_primary() {
+    // Handle expressions within parentheses
     if (tokens[current_token_index] == "(") {
         current_token_index++;
         auto node = parse_expression();
@@ -58,12 +57,14 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
         return node;
     }
 
+    // Handle numeric literals
     if (std::regex_match(tokens[current_token_index],
                          std::regex(R"(\d+(\.\d+)?)"))) {
         double value = std::stod(tokens[current_token_index++]);
         return std::make_unique<NumberNode>(value);
     }
 
+    // Handle variables
     if (std::regex_match(tokens[current_token_index],
                          std::regex(R"([a-zA-Z])"))) {
         char variable = tokens[current_token_index++][0];
@@ -72,9 +73,10 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
             throw std::invalid_argument("Unexpected variable '" +
                                         std::string(1, variable) + "' found.");
         }
-        return std::make_unique<VariableNode>(variable, variable_values);
+        return std::make_unique<VariableNode>(variable, parameters);
     }
 
+    // Handle functions (sin, cos, etc.)
     if (std::regex_match(tokens[current_token_index],
                          std::regex(R"(\b(?:sin|cos|tan|log|ln|sqrt)\b)"))) {
         std::string func = tokens[current_token_index++];
@@ -83,14 +85,12 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
                                         "'.");
         }
         current_token_index++;
-        auto argument = parse_expression();
+        auto argument = parse_expression(); // Parse the function argument
 
-        std::string variable_token = tokens[current_token_index - 2];
-        if (variable_token.size() == 1 &&
-            variable_token[0] != parameters.get_variable()) {
+        // Ensure that the parsed argument contains the expected variable
+        if (!argument->contains_variable(parameters.get_variable())) {
             throw std::invalid_argument(
-                "Incorrect variable used in function argument. Expected "
-                "variable: '" +
+                "Incorrect variable used in function argument. Expected variable: '" +
                 std::string(1, parameters.get_variable()) + "'.");
         }
 
