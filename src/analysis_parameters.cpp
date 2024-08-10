@@ -326,3 +326,8 @@ double AnalysisParameters::evaluate_expression(double variable_value) {
     variable_values[variable_] = variable_value;
     return ast_->evaluate();
 }
+
+// Updates the map with the current value of the variable
+void AnalysisParameters::set_variable_value(char var, double value) {
+    variable_values[var] = value;
+}

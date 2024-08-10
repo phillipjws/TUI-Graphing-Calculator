@@ -46,6 +46,8 @@ class AnalysisParameters {
 
         double evaluate_expression(double variable_value);
 
+        void set_variable_value(char variable, double value);
+
         static const int MAX_SAMPLES = 100000;
         static const int MIN_SAMPLES = 100;
 

@@ -650,38 +650,33 @@ void TUI::run_calculation() {
     double end = parameters.get_end();
     double step = parameters.get_step();
 
-    // Generate the AST from the expression
-    std::unique_ptr<ASTNode> ast;
-    try {
-        ast = generate_ast_from_expression(parameters.get_expression());
-    } catch (const std::exception &e) {
-        show_status("Error generating AST: " + std::string(e.what()), 0);
-        return;
-    }
+    // Generate the AST from the expression using the current parameters
+    std::unique_ptr<ASTNode> ast =
+        generate_ast_from_expression(parameters.get_expression(), parameters);
 
     // Evaluate the expression over the range
     std::vector<std::pair<double, double>> results;
-    try {
-        for (double x = start; x <= end; x += step) {
-            double y = evaluate_expression(ast, x);
-            results.emplace_back(x, y);
-        }
-    } catch (const std::exception &e) {
-        show_status("Error during evaluation: " + std::string(e.what()), 0);
-        return;
+    for (double x = start; x <= end; x += step) {
+        parameters.set_variable_value(
+            parameters.get_variable(),
+            x); // Set the current value of the variable (e.g., 'x')
+        double y =
+            ast->evaluate(); // Evaluate the AST for the current value of 'x'
+        results.emplace_back(x, y); // Store the result (x, y)
     }
 
-    // If output is enabled, write to file
     if (parameters.get_output_status()) {
+        // If output is enabled, write to file
         std::string filename;
         get_string_input("Enter filename for output (without extension): ",
                          filename);
         std::string filepath =
-            parameters.get_output_directory_path().string() + filename + ".txt";
-
+            (parameters.get_output_directory_path() / filename).string() +
+            ".txt";
         std::ofstream outfile(filepath);
+
         if (!outfile) {
-            show_status("Error opening file for writing: " + filepath, 0);
+            show_status("Error opening file for writing.", 0);
             return;
         }
 

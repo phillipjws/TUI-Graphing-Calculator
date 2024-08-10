@@ -1,6 +1,7 @@
 #ifndef AST_HPP
 #define AST_HPP
 
+#include "analysis_parameters.hpp"
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -58,7 +59,8 @@ class FunctionNode : public ASTNode {
 
 // Function declarations
 std::unique_ptr<ASTNode>
-generate_ast_from_expression(const std::string &expression);
+generate_ast_from_expression(const std::string &expression,
+                             AnalysisParameters &params);
 double evaluate_expression(const std::unique_ptr<ASTNode> &ast,
                            double variable_value);
 
