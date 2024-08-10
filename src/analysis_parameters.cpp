@@ -31,10 +31,11 @@ AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
     set_start(start);
     set_end(end);
     set_num_samples(num_samples);
-    set_output_status(false);  // Assuming default is false
-    set_variable('x');  // Set the default variable to 'x'
+    set_output_status(false); // Assuming default is false
+    set_variable('x');        // Set the default variable to 'x'
     set_output_directory_path(std::filesystem::current_path().string());
-    set_expression("sin(x)");  // This initializes the AST with the default expression
+    set_expression(
+        "sin(x)"); // This initializes the AST with the default expression
 }
 
 // Getter for start_
@@ -211,8 +212,8 @@ void AnalysisParameters::set_expression(const std::string &new_expression) {
     try {
         ast_ = generate_ast_from_expression(expression_, *this);
     } catch (const std::exception &e) {
-        throw std::invalid_argument(
-            std::string("Failed to initialize AST: ") + e.what());
+        throw std::invalid_argument(std::string("Failed to initialize AST: ") +
+                                    e.what());
     }
 }
 

@@ -5,9 +5,7 @@
 Parser::Parser(const std::vector<std::string> &toks, AnalysisParameters &params)
     : tokens(toks), current_token_index(0), parameters(params) {}
 
-std::unique_ptr<ASTNode> Parser::parse() {
-    return parse_expression();
-}
+std::unique_ptr<ASTNode> Parser::parse() { return parse_expression(); }
 
 std::unique_ptr<ASTNode> Parser::parse_expression() {
     auto node = parse_term();
@@ -90,7 +88,8 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
         // Ensure that the parsed argument contains the expected variable
         if (!argument->contains_variable(parameters.get_variable())) {
             throw std::invalid_argument(
-                "Incorrect variable used in function argument. Expected variable: '" +
+                "Incorrect variable used in function argument. Expected "
+                "variable: '" +
                 std::string(1, parameters.get_variable()) + "'.");
         }
 

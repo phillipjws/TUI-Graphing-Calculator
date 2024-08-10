@@ -11,7 +11,7 @@ NumberNode::NumberNode(double val) : value(val) {}
 double NumberNode::evaluate() const { return value; }
 
 bool NumberNode::contains_variable(char variable) const {
-    return false;  // Numbers do not contain variables
+    return false; // Numbers do not contain variables
 }
 
 // VariableNode Implementation
@@ -19,11 +19,13 @@ VariableNode::VariableNode(char var, AnalysisParameters &params)
     : name(var), parameters(params) {}
 
 double VariableNode::evaluate() const {
-    return parameters.get_variable_value(name);  // Get the value from AnalysisParameters
+    return parameters.get_variable_value(
+        name); // Get the value from AnalysisParameters
 }
 
 bool VariableNode::contains_variable(char variable) const {
-    return name == variable;  // Return true if this node represents the specified variable
+    return name == variable; // Return true if this node represents the
+                             // specified variable
 }
 
 // BinaryOpNode Implementation
@@ -51,7 +53,8 @@ double BinaryOpNode::evaluate() const {
 }
 
 bool BinaryOpNode::contains_variable(char variable) const {
-    return left->contains_variable(variable) || right->contains_variable(variable);
+    return left->contains_variable(variable) ||
+           right->contains_variable(variable);
 }
 
 // FunctionNode Implementation
@@ -80,13 +83,14 @@ bool FunctionNode::contains_variable(char variable) const {
 }
 
 // Function to generate AST from expression
-std::unique_ptr<ASTNode> generate_ast_from_expression(const std::string &expression,
-                                                      AnalysisParameters &params) {
+std::unique_ptr<ASTNode>
+generate_ast_from_expression(const std::string &expression,
+                             AnalysisParameters &params) {
     Tokenizer tokenizer;
     auto tokens = tokenizer.tokenize(expression);
 
-    Parser parser(tokens, params);  // Pass AnalysisParameters to the parser
-    return parser.parse();  // This returns the root node of the AST
+    Parser parser(tokens, params); // Pass AnalysisParameters to the parser
+    return parser.parse();         // This returns the root node of the AST
 }
 
 // Function to evaluate the expression based on the AST
