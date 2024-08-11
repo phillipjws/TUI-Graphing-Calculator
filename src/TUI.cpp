@@ -710,7 +710,6 @@ void TUI::write_results_to_file(
     wnoutrefresh(status_window);
     doupdate();
 
-    // Wait for 'B' or 'b' key press to close the window
     int ch;
     while ((ch = wgetch(status_window)) != 'b' && ch != 'B') {
         // Do nothing, just wait for 'B' or 'b'

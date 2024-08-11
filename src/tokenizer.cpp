@@ -6,8 +6,6 @@ Tokenizer::Tokenizer() {}
 std::vector<std::string> Tokenizer::tokenize(const std::string &expression) {
     std::vector<std::string> tokens;
 
-    // Regex pattern to match numbers, variables, functions, operators, and
-    // parentheses
     std::regex token_pattern(
         R"(\bpi\b|\d+(\.\d+)?|[a-zA-Z_]\w*|[+\-*/^()]|\b(?:sin|cos|tan|arcsin|arccos|arctan|log|ln|sqrt)\b)");
     auto words_begin = std::sregex_iterator(expression.begin(),

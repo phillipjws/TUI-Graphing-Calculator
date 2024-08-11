@@ -62,6 +62,36 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
         return std::make_unique<NumberNode>(value);
     }
 
+    // Handle constants (e, pi, c, g, h, k, G, R)
+    if (tokens[current_token_index].length() == 1 ||
+        tokens[current_token_index] == "pi") {
+        std::string constant = tokens[current_token_index];
+        double value = 0.0;
+
+        if (constant == "e") {
+            value = M_E; // Natural log base
+        } else if (constant == "pi") {
+            value = M_PI; // Pi constant
+        } else if (constant == "c") {
+            value = 299792458.0; // Speed of light in vacuum (m/s)
+        } else if (constant == "g") {
+            value = 9.80665; // Acceleration due to gravity (m/s^2)
+        } else if (constant == "h") {
+            value = 6.62607015e-34; // Planck's constant (J·s)
+        } else if (constant == "k") {
+            value = 1.380649e-23; // Boltzmann constant (J/K)
+        } else if (constant == "G") {
+            value = 6.67430e-11; // Gravitational constant (m^3·kg^-1·s^-2)
+        } else if (constant == "R") {
+            value = 8.314462618; // Universal gas constant (J/(mol·K))
+        }
+
+        if (value != 0.0) {
+            current_token_index++;
+            return std::make_unique<NumberNode>(value);
+        }
+    }
+
     // Handle variables
     if (std::regex_match(tokens[current_token_index],
                          std::regex(R"([a-zA-Z])"))) {
@@ -85,13 +115,7 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
         current_token_index++;
         auto argument = parse_expression(); // Parse the function argument
 
-        // Ensure that the parsed argument contains the expected variable
-        if (!argument->contains_variable(parameters.get_variable())) {
-            throw std::invalid_argument(
-                "Incorrect variable used in function argument. Expected "
-                "variable: '" +
-                std::string(1, parameters.get_variable()) + "'.");
-        }
+        // No redundant if statement
 
         if (current_token_index >= tokens.size() ||
             tokens[current_token_index] != ")") {

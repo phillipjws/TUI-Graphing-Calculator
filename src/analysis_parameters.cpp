@@ -284,6 +284,8 @@ bool AnalysisParameters::is_valid_expression(
                         !constants.contains(inner_token)) {
                         return false;
                     }
+                } else if (inner_token == "pi") {
+                    valid_argument = true;
                 } else if (std::regex_match(
                                inner_token,
                                std::regex(
