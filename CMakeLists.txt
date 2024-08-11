@@ -21,3 +21,8 @@ add_executable(calculator
 )
 
 target_link_libraries(calculator ${CURSES_LIBRARIES})
+
+install(TARGETS calculator DESTINATION bin)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include)
+
+install(PROGRAMS ${PROJECT_SOURCE_DIR}/demo DESTINATION bin)

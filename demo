@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Function to simulate keypresses and interactions
+send_keys() {
+    # Run the calculator application in a subshell
+    {
+        # Navigate to "Input Function" and change the function
+        tput cud1     # Down arrow
+        sleep 0.5
+        echo -ne "\n"     # Enter key
+        sleep 1
+        echo -ne "t^2 + 2*t + 1\n" # New function input
+        sleep 1
+        tput cud1     # Down arrow to "Change Domain"
+        sleep 0.5
+        echo -ne "\n"     # Enter key
+        sleep 1
+        echo -ne "-50\n"  # Change start value of domain
+        sleep 1
+        tput cud1     # Move to end value of domain
+        sleep 0.5
+        echo -ne "\n"     # Enter key
+        sleep 1
+        echo -ne "50\n"   # Change end value of domain
+        sleep 1
+
+        # Navigate to "Change Independent Variable"
+        tput cud1     # Down arrow
+        sleep 0.5
+        echo -ne "\n"     # Enter key
+        sleep 1
+        echo -ne "t\n"    # Change variable to 't'
+        sleep 1
+
+        # Navigate to "Change amount of Sample Points"
+        tput cud1     # Down arrow
+        sleep 0.5
+        echo -ne "\n"     # Enter key
+        sleep 1
+        echo -ne "5000\n" # Change number of sample points
+        sleep 1
+
+        # Navigate to "Enable Output File"
+        tput cud1     # Down arrow
+        sleep 0.5
+        echo -ne "\n"     # Enter key
+        sleep 1
+        echo -ne "t\n"    # Enable output file (t for true)
+        sleep 1
+
+        # Navigate to "Set Export Directory"
+        tput cud1     # Down arrow
+        sleep 0.5
+        echo -ne "\n"     # Enter key
+        sleep 1
+        echo -ne "./\n"   # Set the current directory
+        sleep 1
+
+        # Run the calculation
+        tput cuu1     # Up arrow to go to "Run"
+        sleep 0.5
+        tput cuu1     # Up arrow to go to "Run"
+        sleep 0.5
+        echo -ne "\n"     # Enter key to run the calculation
+        sleep 5           # Allow time for the calculation to complete
+
+        # Quit the application
+        tput cud1     # Down arrow to Quit
+        sleep 0.5
+        echo -ne "\n"     # Enter key to quit
+    } | calculator
+}
+
+# Run the send_keys function to start the demo
+send_keys
+
+# Display the contents of output.txt
+cat output.txt
