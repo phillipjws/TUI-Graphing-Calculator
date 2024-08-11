@@ -607,6 +607,18 @@ void TUI::run_calculation() {
 
 void TUI::write_results_to_file(
     const std::vector<std::pair<double, double>> &results) {
+    int max_x, max_y;
+    getmaxyx(stdscr, max_y, max_x);
+
+    int status_height = 10;
+    int status_width = STATUS_WINDOW_WIDTH;
+    int status_start_y = (max_y - status_height) / 2; // Center vertically
+    int status_start_x = (max_x - status_width) / 2;  // Center horizontally
+
+    status_window =
+        newwin(status_height, status_width, status_start_y, status_start_x);
+    keypad(status_window, TRUE);   // Enable keypad input
+    nodelay(status_window, FALSE); // Disable non-blocking input
     std::string filename;
     get_string_input(
         "Enter filename to save to, output will save to <filename>.txt: ",
