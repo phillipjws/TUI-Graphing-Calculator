@@ -625,8 +625,17 @@ void TUI::write_results_to_file(
         filename);
 
     std::string filepath =
-        (parameters.get_output_directory_path() / filename).string() + ".txt";
-    std::ofstream outfile(filepath);
+        (parameters.get_output_directory_path() / filename).string();
+
+    std::string full_filepath = filepath + ".txt";
+
+    int file_index = 0;
+    while (std::ifstream(full_filepath)) {
+        file_index++;
+        full_filepath = filepath + std::to_string(file_index) + ".txt";
+    }
+
+    std::ofstream outfile(full_filepath);
 
     werase(status_window);
     box(status_window, 0, 0);
@@ -637,8 +646,10 @@ void TUI::write_results_to_file(
         for (const auto &[x, y] : results) {
             outfile << x << " " << y << "\n";
         }
-        mvwprintw(status_window, 3, 2, "Results written to: %s.txt",
-                  filename.c_str());
+        std::string display_filename =
+            full_filepath.substr(full_filepath.find_last_of("/") + 1);
+        mvwprintw(status_window, 3, 2, "Results written to: %s",
+                  display_filename.c_str());
     }
 
     mvwprintw(status_window, 8, 2, "Press 'B' to go back");
