@@ -1,7 +1,7 @@
 #include "parser.hpp"
+#include <cmath>
 #include <regex>
 #include <stdexcept>
-#include <cmath>
 
 Parser::Parser(const std::vector<std::string> &toks, AnalysisParameters &params)
     : tokens(toks), current_token_index(0), parameters(params) {}
@@ -44,6 +44,9 @@ std::unique_ptr<ASTNode> Parser::parse_factor() {
 }
 
 std::unique_ptr<ASTNode> Parser::parse_primary() {
+    if (current_token_index >= tokens.size()) {
+        throw std::invalid_argument("Unexpected end of tokens.");
+    }
     // Handle expressions within parentheses
     if (tokens[current_token_index] == "(") {
         current_token_index++;

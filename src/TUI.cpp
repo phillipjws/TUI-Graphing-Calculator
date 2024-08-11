@@ -61,9 +61,14 @@ void TUI::initialize() {
 void TUI::run() {
     bool running = true;
     while (running) {
-        draw_main();
-        draw_menu();
-        handle_input();
+        try {
+            draw_main();
+            draw_menu();
+            handle_input();
+        } catch (const std::exception &e) {
+            std::cerr << "Exception caught in main loop: " << e.what()
+                      << std::endl;
+        }
     }
 }
 
@@ -626,7 +631,8 @@ void TUI::handle_function(int ch, std::string &message,
             message = parameters.display_expression();
         } catch (const std::exception &e) {
             mvwprintw(status_window, 5, 2, e.what());
-            parameters.set_expression("sin(x)");
+            parameters.set_expression(
+                "sin(" + std::string(1, parameters.get_variable()) + ")");
             message = parameters.display_expression();
             mvwprintw(status_window, 8, 2, "Press any key to continue...");
             wnoutrefresh(status_window);
@@ -652,6 +658,9 @@ void TUI::run_calculation() {
     double step = parameters.get_step();
 
     std::vector<std::pair<double, double>> results;
+
+    results.clear();
+
     for (double x = start; x <= end; x += step) {
         parameters.set_variable_value(parameters.get_variable(), x);
         double y = parameters.evaluate_expression(x);

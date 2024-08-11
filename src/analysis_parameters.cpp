@@ -32,7 +32,6 @@ AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
     set_end(end);
     set_num_samples(num_samples);
     set_output_status(false); // Assuming default is false
-    set_variable('x');        // Set the default variable to 'x'
     set_output_directory_path(std::filesystem::current_path().string());
     set_expression(
         "sin(x)"); // This initializes the AST with the default expression
@@ -211,6 +210,10 @@ void AnalysisParameters::set_expression(const std::string &new_expression) {
     // Attempt to generate the AST, and catch any errors
     try {
         ast_ = generate_ast_from_expression(expression_, *this);
+
+        if (!ast_) {
+            throw std::runtime_error("Failed to initialize AST.");
+        }
     } catch (const std::exception &e) {
         throw std::invalid_argument(std::string("Failed to initialize AST: ") +
                                     e.what());
@@ -331,19 +334,24 @@ void AnalysisParameters::update_step() {
 
 // Update expression based on new variable
 void AnalysisParameters::update_expression() {
-    // Update the expression to replace the old variable with the new one
     Tokenizer tokenizer;
     std::vector<std::string> tokens = tokenizer.tokenize(expression_);
+
+    if (tokens.empty()) {
+        throw std::runtime_error("No tokens found in the expression.");
+    }
+
     tokenizer.replace_variable(tokens, old_variable_, variable_);
 
-    // Revalidate the updated expression
     std::string updated_expression = tokenizer.reconstruct_expression(tokens);
+
     if (!is_valid_expression(updated_expression)) {
         throw std::invalid_argument("Invalid Parameters: Expression is not "
                                     "valid with the new variable.");
     }
 
     expression_ = updated_expression;
+    ast_ = generate_ast_from_expression(expression_, *this); // Regenerate AST
 }
 
 // Evaluates current expression
