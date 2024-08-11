@@ -22,7 +22,11 @@ add_executable(calculator
 
 target_link_libraries(calculator ${CURSES_LIBRARIES})
 
-install(TARGETS calculator DESTINATION bin)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include)
+# Install the calculator executable to ${CMAKE_INSTALL_PREFIX}/bin
+install(TARGETS calculator DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
-install(PROGRAMS ${PROJECT_SOURCE_DIR}/demo DESTINATION bin)
+# Install the headers to ${CMAKE_INSTALL_PREFIX}/include
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+
+# Install the demo script to ${CMAKE_INSTALL_PREFIX}/bin
+install(PROGRAMS ${PROJECT_SOURCE_DIR}/demo DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
