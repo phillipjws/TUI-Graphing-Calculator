@@ -3,25 +3,23 @@
 
 #include "ast.hpp"
 #include <filesystem>
-#include <memory>
 #include <set>
 #include <string>
-#include <unordered_map>
 
 class AnalysisParameters {
     public:
         AnalysisParameters(int start, int end, int num_samples);
 
-        int get_start() const;
-        int get_end() const;
-        int get_num_samples() const;
-        double get_step() const;
-        bool get_output_status() const;
-        char get_variable() const;
-        double get_variable_value(char variable) const; // New getter method
-        std::filesystem::path get_output_directory_path() const;
-        std::string get_expression() const;
-        std::set<char> get_reserved_chars() const;
+        const int get_start() const;
+        const int get_end() const;
+        const int get_num_samples() const;
+        const double get_step() const;
+        const bool get_output_status() const;
+        const char get_variable() const;
+        const double get_variable_value(char variable) const;
+        const std::filesystem::path get_output_directory_path() const;
+        const std::string get_expression() const;
+        const std::set<char> get_reserved_chars() const;
 
         std::string display_domain() const;
         std::string display_num_step() const;

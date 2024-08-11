@@ -209,7 +209,8 @@ void TUI::execute_command(int command) {
     show_status(message, command);
 }
 
-void TUI::get_single_number_input(const std::string &prompt, int &target) {
+void TUI::get_single_number_input(const std::string &prompt,
+                                  int &target) const {
     char input_str[10];
     int new_value;
     bool valid_input = false;
@@ -251,7 +252,8 @@ void TUI::get_single_number_input(const std::string &prompt, int &target) {
     }
 }
 
-void TUI::get_string_input(const std::string &prompt, std::string &target) {
+void TUI::get_string_input(const std::string &prompt,
+                           std::string &target) const {
     const int input_max_length = 256;
     char input_str[input_max_length] = {0};
     int ch;
@@ -318,7 +320,7 @@ void TUI::get_string_input(const std::string &prompt, std::string &target) {
     }
 }
 
-void TUI::get_char_input(const std::string &prompt, char &target) {
+void TUI::get_char_input(const std::string &prompt, char &target) const {
     char input_str[2];
     bool valid_input = false;
 

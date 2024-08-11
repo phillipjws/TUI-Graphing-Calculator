@@ -38,25 +38,27 @@ AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
 }
 
 // Getter for start_
-int AnalysisParameters::get_start() const { return start_; }
+const int AnalysisParameters::get_start() const { return start_; }
 
 // Getter for end_
-int AnalysisParameters::get_end() const { return end_; }
+const int AnalysisParameters::get_end() const { return end_; }
 
 // Getter for num_samples_
-int AnalysisParameters::get_num_samples() const { return num_samples_; }
+const int AnalysisParameters::get_num_samples() const { return num_samples_; }
 
 // Getter for step_
-double AnalysisParameters::get_step() const { return step_; }
+const double AnalysisParameters::get_step() const { return step_; }
 
 // Getter for output_status_
-bool AnalysisParameters::get_output_status() const { return output_status_; }
+const bool AnalysisParameters::get_output_status() const {
+    return output_status_;
+}
 
 // Getter for variable_
-char AnalysisParameters::get_variable() const { return variable_; }
+const char AnalysisParameters::get_variable() const { return variable_; }
 
 // Getter for variable value
-double AnalysisParameters::get_variable_value(char variable) const {
+const double AnalysisParameters::get_variable_value(char variable) const {
     auto it = variable_values.find(variable);
     if (it != variable_values.end()) {
         return it->second;
@@ -65,15 +67,18 @@ double AnalysisParameters::get_variable_value(char variable) const {
 }
 
 // Getter for output_directory_path_
-std::filesystem::path AnalysisParameters::get_output_directory_path() const {
+const std::filesystem::path
+AnalysisParameters::get_output_directory_path() const {
     return output_directory_path_;
 }
 
 // Getter for expression_
-std::string AnalysisParameters::get_expression() const { return expression_; }
+const std::string AnalysisParameters::get_expression() const {
+    return expression_;
+}
 
 // Getter for reserved_chars
-std::set<char> AnalysisParameters::get_reserved_chars() const {
+const std::set<char> AnalysisParameters::get_reserved_chars() const {
     return reserved_chars;
 }
 

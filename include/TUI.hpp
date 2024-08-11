@@ -20,9 +20,11 @@ class TUI {
         void draw_menu();
         void handle_input();
         void execute_command(int command);
-        void get_single_number_input(const std::string &prompt, int &target);
-        void get_string_input(const std::string &prompt, std::string &target);
-        void get_char_input(const std::string &prompt, char &target);
+        void get_single_number_input(const std::string &prompt,
+                                     int &target) const;
+        void get_string_input(const std::string &prompt,
+                              std::string &target) const;
+        void get_char_input(const std::string &prompt, char &target) const;
 
         void show_status(const std::string &message, int command);
 
