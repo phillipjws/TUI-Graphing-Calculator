@@ -20,21 +20,16 @@ class TUI {
         void draw_menu();
         void handle_input();
         void execute_command(int command);
-        void show_status(const std::string &message, int command);
-        void write_results_to_file(
-            const std::vector<std::pair<double, double>> &results);
-        void
-        show_results(const std::vector<std::pair<double, double>> &results);
-        void display_graph(const std::string &function);
-
         void get_single_number_input(const std::string &prompt, int &target);
         void get_string_input(const std::string &prompt, std::string &target);
         void get_char_input(const std::string &prompt, char &target);
 
-        void handle_domain(int ch, std::string &message,
-                           bool &continue_interaction);
+        void show_status(const std::string &message, int command);
+
         void handle_sample_size(int ch, std::string &message,
                                 bool &continue_interaction);
+        void handle_domain(int ch, std::string &message,
+                           bool &continue_interaction);
         void handle_output_status(int ch, std::string &message,
                                   bool &continue_interaction);
         void handle_output_directory(int ch, std::string &message,
@@ -43,7 +38,14 @@ class TUI {
                              bool &continue_interaction);
         void handle_function(int ch, std::string &message,
                              bool &continue_interaction);
+
         void run_calculation();
+        void write_results_to_file(
+            const std::vector<std::pair<double, double>> &results);
+        void
+        show_results(const std::vector<std::pair<double, double>> &results);
+
+        void display_graph(const std::string &function);
 
         WINDOW *main_window;
         WINDOW *menu_window;
