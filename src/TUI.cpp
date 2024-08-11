@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <ncurses.h>
+#include <string>
 
 constexpr int STATUS_WINDOW_WIDTH = 85;
 
@@ -61,27 +62,19 @@ void TUI::initialize() {
 void TUI::run() {
     bool running = true;
     while (running) {
-        try {
-            draw_main();
-            draw_menu();
-            handle_input();
-        } catch (const std::exception &e) {
-            std::cerr << "Exception caught in main loop: " << e.what()
-                      << std::endl;
-        }
+        draw_main();
+        draw_menu();
+        handle_input();
     }
 }
 
 void TUI::terminate() {
-    if (menu_window) {
+    if (menu_window)
         delwin(menu_window);
-    }
-    if (status_window) {
+    if (status_window)
         delwin(status_window);
-    }
-    if (result_window) {
+    if (result_window)
         delwin(result_window);
-    }
     endwin();
 }
 
@@ -160,18 +153,16 @@ void TUI::handle_input() {
     int ch = wgetch(menu_window);
     switch (ch) {
     case KEY_UP:
-        // Move up in the menu
         --highlighted_item;
         if (highlighted_item < 0)
             highlighted_item++;
         break;
     case KEY_DOWN:
-        // Move down in the menu
         ++highlighted_item;
         if (highlighted_item >= menu_size)
             --highlighted_item;
         break;
-    case '\n': // Enter key
+    case '\n':
         execute_command(highlighted_item);
         break;
     default:
@@ -208,7 +199,6 @@ void TUI::execute_command(int command) {
         message = "Help is not yet implemented.";
         break;
     case 8: // Quit
-        // Exit the program
         terminate();
         exit(0);
     default:
@@ -219,14 +209,160 @@ void TUI::execute_command(int command) {
     show_status(message, command);
 }
 
+void TUI::get_single_number_input(const std::string &prompt, int &target) {
+    char input_str[10];
+    int new_value;
+    bool valid_input = false;
+
+    while (!valid_input) {
+        werase(status_window);
+        box(status_window, 0, 0);
+
+        mvwprintw(status_window, 3, 2, "%s", prompt.c_str());
+        wnoutrefresh(status_window);
+        doupdate();
+
+        echo();
+        curs_set(1);
+
+        wgetnstr(status_window, input_str, sizeof(input_str) - 1);
+
+        noecho();
+        curs_set(0);
+
+        std::string input = input_str;
+        size_t pos;
+
+        try {
+            new_value = std::stoi(input, &pos);
+            if (pos != input.length()) {
+                throw std::invalid_argument("Trailing characters");
+            }
+            target = new_value;
+            valid_input = true; // Input is valid, exit loop
+        } catch (const std::exception &e) {
+            mvwprintw(status_window, 5, 2,
+                      "Invalid input. Please enter a number.");
+            wnoutrefresh(status_window);
+            doupdate();
+            wgetch(status_window); // Wait for user to press a key before
+                                   // re-prompting
+        }
+    }
+}
+
+void TUI::get_string_input(const std::string &prompt, std::string &target) {
+    const int input_max_length = 256;
+    char input_str[input_max_length] = {0};
+    int ch;
+    int index = 0;
+    bool valid_input = false;
+
+    while (!valid_input) {
+        werase(status_window);
+        box(status_window, 0, 0);
+        mvwprintw(status_window, 1, 2, "%s", prompt.c_str());
+        wnoutrefresh(status_window);
+        doupdate();
+
+        echo();
+        curs_set(1);
+
+        int input_area_width = getmaxx(status_window) - 4;
+        int input_area_height = 3;
+        WINDOW *input_win =
+            derwin(status_window, input_area_height, input_area_width, 2, 2);
+        keypad(input_win, TRUE);
+
+        bool input_complete = false;
+        index = 0; // Reset index for new input attempt
+
+        while (!input_complete) {
+            werase(input_win);
+            box(input_win, 0, 0);
+
+            int start_index = std::max(0, index - input_area_width + 3);
+            mvwprintw(input_win, 1, 1, "%s", &input_str[start_index]);
+
+            wnoutrefresh(input_win);
+            doupdate();
+
+            ch = wgetch(input_win);
+            if (ch == '\n') {
+                input_complete = true;
+            } else if (ch == KEY_BACKSPACE || ch == 127 || ch == 8) {
+                if (index > 0) {
+                    input_str[--index] = '\0';
+                }
+            } else if (index < input_max_length - 1) {
+                input_str[index++] = ch;
+                input_str[index] = '\0';
+            }
+        }
+
+        noecho();
+        curs_set(0);
+        delwin(input_win);
+
+        target = std::string(input_str);
+        if (!target.empty()) {
+            valid_input = true;
+        } else {
+            mvwprintw(status_window, 5, 2,
+                      "Invalid input. Please enter a non-empty string.");
+            wnoutrefresh(status_window);
+            doupdate();
+            wgetch(
+                status_window); // Wait for user to acknowledge before retrying
+        }
+    }
+}
+
+void TUI::get_char_input(const std::string &prompt, char &target) {
+    char input_str[2];
+    bool valid_input = false;
+
+    while (!valid_input) {
+        werase(status_window);
+        box(status_window, 0, 0);
+
+        mvwprintw(status_window, 3, 2, "%s", prompt.c_str());
+        wnoutrefresh(status_window);
+        doupdate();
+
+        echo();
+        curs_set(1);
+
+        wgetnstr(status_window, input_str, 1);
+
+        noecho();
+        curs_set(0);
+
+        try {
+            if (!isalpha(input_str[0]) || strlen(input_str) != 1) {
+                throw std::invalid_argument("Empty input or non-alphabetic");
+            }
+            target = input_str[0];
+            valid_input = true;
+        } catch (const std::exception &e) {
+            mvwprintw(
+                status_window, 5, 2,
+                "Invalid input. Please enter a single alphabetic character.");
+            wnoutrefresh(status_window);
+            doupdate();
+            wgetch(status_window);
+        }
+    }
+}
+
 void TUI::show_status(const std::string &initial_message, int command) {
     int max_x, max_y;
     getmaxyx(stdscr, max_y, max_x);
 
     int status_height = 10;
     int status_width = STATUS_WINDOW_WIDTH;
-    int status_start_y = (max_y - status_height) / 2; // Center vertically
-    int status_start_x = (max_x - status_width) / 2;  // Center horizontally
+    int status_start_y = (max_y - status_height) / 2;
+    int status_start_x = (max_x - status_width) / 2;
 
     status_window =
         newwin(status_height, status_width, status_start_y, status_start_x);
@@ -240,72 +376,72 @@ void TUI::show_status(const std::string &initial_message, int command) {
         werase(status_window);
         box(status_window, 0, 0);
 
-        std::string displayed_message = message;
-
-        mvwprintw(status_window, 1, 2, "%s", displayed_message.c_str());
+        mvwprintw(status_window, 1, 2, "%s", message.c_str());
         mvwprintw(status_window, 8, 2, "Press 'B' to go back");
+
+        if (command == 1) {
+            mvwprintw(status_window, 3, 2, "Press 'C' to change function");
+        } else if (command == 2) {
+            mvwprintw(status_window, 3, 2,
+                      "Press 'S' to change start or 'E' to change end");
+        } else if (command == 3) {
+            mvwprintw(status_window, 3, 2,
+                      "Press 'V' to change independent variable");
+        } else if (command == 4) {
+            mvwprintw(status_window, 3, 2,
+                      "Press 'N' to change number of samples");
+        } else if (command == 5) {
+            mvwprintw(status_window, 3, 2,
+                      "Press 'T' or 'F' to enable or disable output file");
+        } else if (command == 6 && parameters.get_output_status()) {
+            mvwprintw(status_window, 3, 2,
+                      "Press 'D' to change the output directory");
+        }
 
         wnoutrefresh(status_window);
         doupdate();
 
-        if (command == 1) {
-            mvwprintw(status_window, 3, 2, "Press 'F' to change function");
-            wnoutrefresh(status_window);
-            doupdate();
-        } else if (command == 2) {
-            mvwprintw(status_window, 3, 2,
-                      "Press 'S' to change start or 'E' to change end");
-            wnoutrefresh(status_window);
-            doupdate();
-        } else if (command == 3) {
-            mvwprintw(status_window, 3, 2,
-                      "Press 'V' to change independant variable");
-            wnoutrefresh(status_window);
-            doupdate();
-        } else if (command == 4) {
-            mvwprintw(status_window, 3, 2,
-                      "Press 'N' to change number of samples");
-            wnoutrefresh(status_window);
-            doupdate();
-        } else if (command == 5) {
-            mvwprintw(status_window, 3, 2,
-                      "Press 'T' or 'F' to enable or disable output file");
-        } else if (command == 6) {
-            if (parameters.get_output_status()) {
-                mvwprintw(status_window, 3, 2,
-                          "Press 'D' to change the output directory");
-            }
-        }
-
         int ch = wgetch(status_window);
-        switch (command) {
-        case 1:
-            handle_function(ch, message, continue_interaction);
+        switch (ch) {
+        case 'c':
+        case 'C':
+            if (command == 1)
+                handle_function(ch, message, continue_interaction);
             break;
-        case 2:
-            handle_domain(ch, message, continue_interaction);
+        case 's':
+        case 'S':
+        case 'e':
+        case 'E':
+            if (command == 2)
+                handle_domain(ch, message, continue_interaction);
             break;
-        case 3:
-            handle_variable(ch, message, continue_interaction);
+        case 'v':
+        case 'V':
+            if (command == 3)
+                handle_variable(ch, message, continue_interaction);
             break;
-        case 4:
-            handle_sample_size(ch, message, continue_interaction);
+        case 'n':
+        case 'N':
+            if (command == 4)
+                handle_sample_size(ch, message, continue_interaction);
             break;
-        case 5:
-            handle_output_status(ch, message, continue_interaction);
+        case 't':
+        case 'T':
+        case 'f':
+        case 'F':
+            if (command == 5)
+                handle_output_status(ch, message, continue_interaction);
             break;
-        case 6:
-            if (parameters.get_output_status()) {
+        case 'd':
+        case 'D':
+            if (command == 6)
                 handle_output_directory(ch, message, continue_interaction);
-            }
-            if (ch == 'b' || ch == 'B') {
-                continue_interaction = false;
-            }
+            break;
+        case 'b':
+        case 'B':
+            continue_interaction = false;
             break;
         default:
-            if (ch == 'b' || ch == 'B') {
-                continue_interaction = false;
-            }
             break;
         }
     }
@@ -317,132 +453,9 @@ void TUI::show_status(const std::string &initial_message, int command) {
     refresh();
 }
 
-void TUI::get_single_number_input(const std::string &prompt, int &target) {
-    char input_str[10];
-    int new_value;
-
-    werase(status_window);
-    box(status_window, 0, 0);
-
-    mvwprintw(status_window, 3, 2, "%s", prompt.c_str());
-    wnoutrefresh(status_window);
-    doupdate();
-
-    echo();
-    curs_set(1);
-
-    wgetnstr(status_window, input_str, sizeof(input_str) - 1);
-
-    noecho();
-    curs_set(0);
-
-    std::string input = input_str;
-    size_t pos;
-
-    try {
-        new_value = std::stoi(input, &pos);
-        if (pos != input.length()) {
-            throw std::invalid_argument("Trailing characters");
-        }
-        target = new_value;
-    } catch (const std::exception &e) {
-        mvwprintw(status_window, 5, 2, "Invalid input. Please enter a number.");
-        wnoutrefresh(status_window);
-        doupdate();
-        wgetch(status_window);
-    }
-}
-
-void TUI::get_string_input(const std::string &prompt, std::string &target) {
-    const int input_max_length = 256;
-    char input_str[input_max_length] = {0};
-    int ch;
-    int index = 0;
-
-    werase(status_window);
-    box(status_window, 0, 0);
-    mvwprintw(status_window, 1, 2, "%s", prompt.c_str());
-    wnoutrefresh(status_window);
-    doupdate();
-
-    echo();
-    curs_set(1);
-
-    int input_area_width = getmaxx(status_window) - 4;
-    int input_area_height = 3;
-    WINDOW *input_win =
-        derwin(status_window, input_area_height, input_area_width, 2, 2);
-    keypad(input_win, TRUE);
-
-    bool input_complete = false;
-
-    while (!input_complete) {
-        werase(input_win);
-        box(input_win, 0, 0);
-
-        int start_index = std::max(0, index - input_area_width + 3);
-        mvwprintw(input_win, 1, 1, "%s", &input_str[start_index]);
-
-        wnoutrefresh(input_win);
-        doupdate();
-
-        ch = wgetch(input_win);
-        if (ch == '\n') {
-            input_complete = true;
-        } else if (ch == KEY_BACKSPACE || ch == 127 || ch == 8) {
-            if (index > 0) {
-                input_str[--index] = '\0';
-            }
-        } else if (index < input_max_length - 1) {
-            input_str[index++] = ch;
-            input_str[index] = '\0';
-        }
-    }
-
-    noecho();
-    curs_set(0);
-    delwin(input_win);
-
-    target = std::string(input_str);
-}
-
-void TUI::get_char_input(const std::string &prompt, char &target) {
-    char input_str[2];
-
-    werase(status_window);
-    box(status_window, 0, 0);
-
-    mvwprintw(status_window, 3, 2, "%s", prompt.c_str());
-    wnoutrefresh(status_window);
-    doupdate();
-
-    echo();
-    curs_set(1);
-
-    wgetnstr(status_window, input_str, 1);
-
-    noecho();
-    curs_set(0);
-
-    try {
-        if (!isalpha(input_str[0]) || strlen(input_str) != 1) {
-            throw std::invalid_argument("Empty input or non-alphabetic");
-        }
-        target = input_str[0];
-    } catch (const std::exception &e) {
-        mvwprintw(status_window, 5, 2,
-                  "Invalid input. Please enter a single alphabetic character.");
-        wnoutrefresh(status_window);
-        doupdate();
-        wgetch(status_window);
-    }
-}
-
 void TUI::handle_sample_size(int ch, std::string &message,
                              bool &continue_interaction) {
-    switch (ch) {
-    case 'n':
-    case 'N': {
+    if (ch == 'n' || ch == 'N') {
         int new_num_samples;
         get_single_number_input("Enter new number of samples: ",
                                 new_num_samples);
@@ -458,24 +471,12 @@ void TUI::handle_sample_size(int ch, std::string &message,
             doupdate();
             wgetch(status_window);
         }
-        break;
-    }
-
-    case 'b':
-    case 'B':
-        continue_interaction = false;
-        return;
-
-    default:
-        break;
     }
 }
 
 void TUI::handle_domain(int ch, std::string &message,
                         bool &continue_interaction) {
-    switch (ch) {
-    case 's':
-    case 'S': {
+    if (ch == 's' || ch == 'S') {
         int new_start;
         get_single_number_input("Enter new start value: ", new_start);
         try {
@@ -490,11 +491,7 @@ void TUI::handle_domain(int ch, std::string &message,
             doupdate();
             wgetch(status_window);
         }
-        break;
-    }
-
-    case 'e':
-    case 'E': {
+    } else if (ch == 'e' || ch == 'E') {
         int new_end;
         get_single_number_input("Enter new end value: ", new_end);
         try {
@@ -509,53 +506,24 @@ void TUI::handle_domain(int ch, std::string &message,
             doupdate();
             wgetch(status_window);
         }
-        break;
-    }
-
-    case 'b':
-    case 'B':
-        continue_interaction = false;
-        break;
-
-    default:
-        break;
     }
 }
 
 void TUI::handle_output_status(int ch, std::string &message,
                                bool &continue_interaction) {
-    switch (ch) {
-    case 't':
-    case 'T': {
+    if (ch == 't' || ch == 'T') {
         parameters.set_output_status(true);
-        message = parameters.display_output_status();
-        break;
-    }
-    case 'f':
-    case 'F': {
+    } else if (ch == 'f' || ch == 'F') {
         parameters.set_output_status(false);
-        message = parameters.display_output_status();
-        break;
     }
-
-    case 'b':
-    case 'B':
-        continue_interaction = false;
-        break;
-
-    default:
-        break;
-    }
+    message = parameters.display_output_status();
 }
 
 void TUI::handle_output_directory(int ch, std::string &message,
                                   bool &continue_interaction) {
-    switch (ch) {
-    case 'd':
-    case 'D': {
+    if (ch == 'd' || ch == 'D') {
         std::string new_path;
         get_string_input("Enter new output file directory path: ", new_path);
-
         try {
             parameters.set_output_directory_path(new_path);
             message = parameters.display_output_directory_path(
@@ -571,28 +539,15 @@ void TUI::handle_output_directory(int ch, std::string &message,
             doupdate();
             wgetch(status_window);
         }
-        break;
-    }
-
-    case 'b':
-    case 'B':
-        continue_interaction = false;
-        return;
-
-    default:
-        break;
     }
 }
 
 void TUI::handle_variable(int ch, std::string &message,
                           bool &continue_interaction) {
-    switch (ch) {
-    case 'v':
-    case 'V': {
+    if (ch == 'v' || ch == 'V') {
         char new_variable;
         get_char_input("Enter new independent variable character: ",
                        new_variable);
-
         try {
             parameters.set_variable(new_variable);
             message = parameters.display_variable();
@@ -605,27 +560,14 @@ void TUI::handle_variable(int ch, std::string &message,
             doupdate();
             wgetch(status_window);
         }
-        break;
-    }
-
-    case 'b':
-    case 'B':
-        continue_interaction = false;
-        return;
-
-    default:
-        break;
     }
 }
 
 void TUI::handle_function(int ch, std::string &message,
                           bool &continue_interaction) {
-    switch (ch) {
-    case 'f':
-    case 'F': {
+    if (ch == 'c' || ch == 'C') {
         std::string new_expression;
         get_string_input("Enter new expression: ", new_expression);
-
         try {
             parameters.set_expression(new_expression);
             message = parameters.display_expression();
@@ -639,16 +581,6 @@ void TUI::handle_function(int ch, std::string &message,
             doupdate();
             wgetch(status_window);
         }
-        break;
-    }
-
-    case 'b':
-    case 'B':
-        continue_interaction = false;
-        return;
-
-    default:
-        break;
     }
 }
 
@@ -658,18 +590,13 @@ void TUI::run_calculation() {
     double step = parameters.get_step();
 
     std::vector<std::pair<double, double>> results;
-
-    results.clear();
-
     for (double x = start; x <= end; x += step) {
         parameters.set_variable_value(parameters.get_variable(), x);
         double y = parameters.evaluate_expression(x);
         results.emplace_back(x, y);
     }
 
-    // TODO: Change this from using status_window
     if (parameters.get_output_status()) {
-        // If output is enabled, write to file
         write_results_to_file(results);
     } else {
         show_results(results);
@@ -678,19 +605,6 @@ void TUI::run_calculation() {
 
 void TUI::write_results_to_file(
     const std::vector<std::pair<double, double>> &results) {
-    int max_x, max_y;
-    getmaxyx(stdscr, max_y, max_x);
-
-    int status_height = 10;
-    int status_width = STATUS_WINDOW_WIDTH;
-    int status_start_y = (max_y - status_height) / 2; // Center vertically
-    int status_start_x = (max_x - status_width) / 2;  // Center horizontally
-
-    status_window =
-        newwin(status_height, status_width, status_start_y, status_start_x);
-    keypad(status_window, TRUE);   // Enable keypad input
-    nodelay(status_window, FALSE); // Disable non-blocking input
-
     std::string filename;
     get_string_input(
         "Enter filename to save to, output will save to <filename>.txt: ",
@@ -698,7 +612,6 @@ void TUI::write_results_to_file(
 
     std::string filepath =
         (parameters.get_output_directory_path() / filename).string() + ".txt";
-
     std::ofstream outfile(filepath);
 
     werase(status_window);
@@ -739,7 +652,6 @@ void TUI::show_results(const std::vector<std::pair<double, double>> &results) {
     for (const auto &[x, y] : results) {
         std::string x_str = std::to_string(x);
         std::string y_str = std::to_string(y);
-        // Truncate or adjust the precision manually if needed
         if (x_str.length() > max_length)
             max_length = x_str.length();
         if (y_str.length() > max_length)
@@ -759,8 +671,8 @@ void TUI::show_results(const std::vector<std::pair<double, double>> &results) {
     nodelay(result_window, FALSE);
 
     int items_per_page = (result_height - 5);
-    int total_pages = (results.size() + items_per_page * 2 - 1) /
-                      (items_per_page * 2); // Total number of pages
+    int total_pages =
+        (results.size() + items_per_page * 2 - 1) / (items_per_page * 2);
     int current_page = 0;
 
     bool continue_interaction = true;
