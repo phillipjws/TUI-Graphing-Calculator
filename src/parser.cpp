@@ -1,6 +1,7 @@
 #include "parser.hpp"
 #include <regex>
 #include <stdexcept>
+#include <cmath>
 
 Parser::Parser(const std::vector<std::string> &toks, AnalysisParameters &params)
     : tokens(toks), current_token_index(0), parameters(params) {}
