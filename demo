@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ensure the calculator executable is in the same directory as this script or adjust the path accordingly.
-EXECUTABLE="./calculator"
+EXECUTABLE="calculator"
 
 # Ensure the terminal supports the necessary features
 if ! command -v tput >/dev/null; then
