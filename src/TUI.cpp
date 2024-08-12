@@ -164,7 +164,7 @@ void TUI::handle_input() {
         if (highlighted_item >= menu_size)
             --highlighted_item;
         break;
-    case '1':  // Handle number input
+    case '1': // Handle number input
     case '2':
     case '3':
     case '4':
@@ -793,20 +793,25 @@ void TUI::display_graph() {
     // Define the dimensions and position for the inner box
     int inner_start_y = 3;
     int inner_start_x = 3;
-    int inner_width = graph_width - 3; // Adjust for padding
+    int inner_width = graph_width - 3;   // Adjust for padding
     int inner_height = graph_height - 2; // Adjust for padding
 
     // Draw the inner box
     mvwhline(graph_window, inner_start_y, inner_start_x, 0, inner_width);
-    mvwhline(graph_window, inner_start_y + inner_height, inner_start_x, 0, inner_width);
+    mvwhline(graph_window, inner_start_y + inner_height, inner_start_x, 0,
+             inner_width);
     mvwvline(graph_window, inner_start_y, inner_start_x, 0, inner_height);
-    mvwvline(graph_window, inner_start_y, inner_start_x + inner_width, 0, inner_height);
+    mvwvline(graph_window, inner_start_y, inner_start_x + inner_width, 0,
+             inner_height);
 
     // Draw corners of the inner box
     mvwaddch(graph_window, inner_start_y, inner_start_x, ACS_ULCORNER);
-    mvwaddch(graph_window, inner_start_y, inner_start_x + inner_width, ACS_URCORNER);
-    mvwaddch(graph_window, inner_start_y + inner_height, inner_start_x, ACS_LLCORNER);
-    mvwaddch(graph_window, inner_start_y + inner_height, inner_start_x + inner_width, ACS_LRCORNER);
+    mvwaddch(graph_window, inner_start_y, inner_start_x + inner_width,
+             ACS_URCORNER);
+    mvwaddch(graph_window, inner_start_y + inner_height, inner_start_x,
+             ACS_LLCORNER);
+    mvwaddch(graph_window, inner_start_y + inner_height,
+             inner_start_x + inner_width, ACS_LRCORNER);
 
     // User-specified or default domain/range
     double graph_min_x = user_min_x_;
@@ -828,16 +833,19 @@ void TUI::display_graph() {
 
     // Scale the results to fit within the inner box dimensions
     auto scale_x = [&](double x) {
-        return inner_start_x + static_cast<int>(((x - graph_min_x) / x_range) * inner_width);
+        return inner_start_x +
+               static_cast<int>(((x - graph_min_x) / x_range) * inner_width);
     };
     auto scale_y = [&](double y) {
-        return inner_start_y + static_cast<int>(((y - graph_min_y) / y_range) * inner_height);
+        return inner_start_y +
+               static_cast<int>(((y - graph_min_y) / y_range) * inner_height);
     };
 
     // Determine positions for the axes
     int y_axis_pos = (graph_min_x <= 0 && graph_max_x >= 0) ? scale_x(0) : -1;
-    int x_axis_pos =
-        (graph_min_y <= 0 && graph_max_y >= 0) ? inner_height - scale_y(0) + inner_start_y : -1;
+    int x_axis_pos = (graph_min_y <= 0 && graph_max_y >= 0)
+                         ? inner_height - scale_y(0) + inner_start_y
+                         : -1;
 
     // Draw X and Y axes if they exist within the range
     if (x_axis_pos != -1) {
@@ -869,18 +877,23 @@ void TUI::display_graph() {
         int scaled_y = inner_start_y + inner_height - scale_y(y);
 
         // Ensure points are within graph boundaries
-        if (scaled_x > inner_start_x && scaled_x < inner_start_x + inner_width &&
-            scaled_y > inner_start_y && scaled_y < inner_start_y + inner_height) {
+        if (scaled_x > inner_start_x &&
+            scaled_x < inner_start_x + inner_width &&
+            scaled_y > inner_start_y &&
+            scaled_y < inner_start_y + inner_height) {
             mvwaddch(graph_window, scaled_y, scaled_x, '*');
         }
     }
 
     // Display domain and range information at the top, outside the inner box
-    mvwprintw(graph_window, 1, 2, "Domain: [%.2f, %.2f]", graph_min_x, graph_max_x);
-    mvwprintw(graph_window, 2, 2, "Range: [%.2f, %.2f]", graph_min_y, graph_max_y);
+    mvwprintw(graph_window, 1, 2, "Domain: [%.2f, %.2f]", graph_min_x,
+              graph_max_x);
+    mvwprintw(graph_window, 2, 2, "Range: [%.2f, %.2f]", graph_min_y,
+              graph_max_y);
 
     // Display command instructions at the bottom, outside the inner box
-    mvwprintw(graph_window, graph_height + 2, 2, "Press 'B' to go back or 'V' to change the view");
+    mvwprintw(graph_window, graph_height + 2, 2,
+              "Press 'B' to go back or 'V' to change the view");
 
     wnoutrefresh(graph_window);
     doupdate();
