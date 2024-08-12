@@ -40,22 +40,30 @@ class TUI {
                              bool &continue_interaction);
         void handle_running(int ch, std::string &message,
                             bool &continue_interaction);
+        void handle_help();
 
         void run_calculation();
 
         void display_graph();
         void adjust_graph_domain_range();
 
+        void draw_help_menu();
+        void handle_help_input();
+
         WINDOW *main_window;
         WINDOW *menu_window;
         WINDOW *status_window;
         WINDOW *result_window;
         WINDOW *graph_window;
+        WINDOW *help_menu_window;
         std::vector<std::string> menu_items;
         std::vector<std::pair<double, double>> results_;
         int highlighted_item;
         int menu_size = 8;
         AnalysisParameters parameters;
+        int help_page;
+        int help_total_pages;
+        std::vector<std::string> help_pages;
 
         int user_min_x_ = -10;
         int user_max_x_ = 10;
