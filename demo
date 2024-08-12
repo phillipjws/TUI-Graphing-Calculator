@@ -1,0 +1,81 @@
+#!/bin/bash
+
+# Ensure the calculator executable is in the same directory as this script or adjust the path accordingly.
+EXECUTABLE="./calculator"
+
+# Ensure the terminal supports the necessary features
+if ! command -v tput >/dev/null; then
+    echo "Error: tput is not available. Please run this script in a compatible terminal."
+    exit 1
+fi
+
+# Run the calculator in a new terminal window and simulate user input
+(
+    sleep 1
+
+    # Navigate to "Change Independent Variable" using the number 4
+    echo -n "4"
+    sleep 1
+    echo -ne "\n"
+    sleep 1
+
+    # Change variable to 't' and confirm
+    echo -n "V"
+    sleep 1
+    echo -n "t"
+    sleep 1
+    echo -ne "\n"
+    sleep 1
+    echo -n "B"
+    sleep 1
+
+    # Navigate to "Run" using the number 1
+    echo -n "1"
+    sleep 1
+    echo -ne "\n"  # Press enter to select
+    sleep 1
+
+    # Choose to view the graph ('G')
+    echo -n "G"
+    sleep 3
+
+    # Exit the graph view ('B')
+    echo -n "B"
+    sleep 1
+    echo -n "B"
+    sleep 1
+
+    echo -n "2"
+    sleep 1
+    echo -ne "\n"
+    sleep 1
+    echo -n "C"
+    sleep 1
+    echo -n "cos(2 * t) + pi"
+    sleep 1
+    echo -ne "\n"
+    sleep 1
+    echo -n "B"
+    sleep 1
+
+    echo -n "1"
+    sleep 1
+    echo -ne "\n"  # Press enter to select
+    sleep 1
+
+    # Choose to view the graph ('G')
+    echo -n "G"
+    sleep 3
+
+    # Exit the graph view ('B')
+    echo -n "B"
+    sleep 1
+    echo -n "B"
+    sleep 1
+
+    # Quit the program
+    echo -n "8"
+    sleep 1
+    echo -ne "\n"  # Press enter to confirm quitting
+
+) | $EXECUTABLE
