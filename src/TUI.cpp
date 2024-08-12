@@ -1,5 +1,6 @@
 #include "TUI.hpp"
 #include <cctype>
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <iostream>
