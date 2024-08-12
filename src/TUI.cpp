@@ -972,6 +972,8 @@ void TUI::display_graph() {
     wnoutrefresh(stdscr);
 
     doupdate();
+    keypad(status_window, TRUE);
+    nodelay(status_window, FALSE);
 }
 
 void TUI::adjust_graph_domain_range() {
@@ -1043,12 +1045,14 @@ void TUI::adjust_graph_domain_range() {
     user_min_y_ = min_y;
     user_max_y_ = max_y_value;
 
-    delwin(status_window);
-    status_window = nullptr;
+    werase(status_window);
+    wnoutrefresh(status_window);
 
     touchwin(stdscr);
     wnoutrefresh(graph_window);
     doupdate();
+    keypad(status_window, TRUE);
+    nodelay(status_window, FALSE);
 }
 
 void TUI::handle_help() {
