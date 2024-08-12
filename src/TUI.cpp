@@ -15,7 +15,7 @@ TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000), help_page(0) {
     status_window = nullptr;
     graph_window = nullptr;
     help_menu_window = nullptr;
-    help_total_pages = 3;
+    help_total_pages = 9;
     help_pages = {
         "\n"
         "Welcome to the TUI Graphing Calculator help menu.\n"
@@ -119,7 +119,6 @@ TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000), help_page(0) {
         "This\n"
         "   variable is case sensitive, if the independent variable is 'x',\n"
         "   'X' will throw an error\n"
-        "\n"
         "   There are a number of mathematical/scientific constants available "
         "to\n"
         "   the user allowing for various applications. This list includes:\n"
@@ -131,11 +130,69 @@ TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000), help_page(0) {
         "     - G: Gravitational Constant (m^3*kg^-1*s^-2)\n"
         "     - R: Universal Gas Constant (J/(mol*K))\n"
         "     - pi\n"
-        "\n"
         "   The functions can take a number of different combinations, "
         "allowing\n"
         "   the user to enter something like:\n"
-        "     - sin(pi) + 2 * ln(3 / x) - sqrt(682) + tan(g - x)\n"};
+        "     - sin(pi) + 2 * ln(3 / x) - sqrt(682) + tan(g - x)\n",
+
+        "\n"
+        "3. Change Domain\n"
+        "   The change domain option allows the user to change the domain\n"
+        "   for which the expression will be evaluated. The domain must\n"
+        "   be at least of length 10, and is specified with integers.\n"
+        "   The user can press 'S' to change the start value, or 'E'\n"
+        "   to change the end value. If the user enters a value that is\n"
+        "   higher than the end for the start, it will be reset to a\n"
+        "   domain of length 10.\n",
+
+        "\n"
+        "4. Change Independent Variable:\n"
+        "   The user is able to change the independent variable that the\n"
+        "   expression will be calculated with. This will change the\n"
+        "   function from f(x) to f(whatever the user enters). This\n"
+        "   variable name is limited to a single alphabetic character,\n"
+        "   and the expression will be updated upon a change. There\n"
+        "   are some reserved variables that cannot be used, these\n"
+        "   include:\n"
+        "     - e\n"
+        "     - c\n"
+        "     - g\n"
+        "     - h\n"
+        "     - k\n"
+        "     - G\n"
+        "     - R\n"
+        "     - i\n"
+        "     - j\n",
+
+        "\n"
+        "5. Change amount of sample points:\n"
+        "   This option allows the user to change the amount of sample\n"
+        "   points that the expression is evaluated at. The user will be\n"
+        "   able to see the current amount of points, and the current\n"
+        "   interval, which is the gap between each point the expression\n"
+        "   will calculate. This value can be any integer between 100 and\n"
+        "   100 000, allowing for more or less data to be captured by the\n"
+        "   program.\n",
+
+        "\n"
+        "6. Set Export Directory:\n"
+        "   This option allows the user to set the directory where the\n"
+        "   output file will be written. This will only show the amount\n"
+        "   of the path that fits within the status window, showing the\n"
+        "   user the end, so they can see the final directory. When\n"
+        "   entering a new directory, the user should use an absolute path\n"
+        "   where they have read access.\n",
+
+        "\n"
+        "7. Help:\n"
+        "   The help option brings the user to this menu, where you currently\n"
+        "   are. Giving the user some understanding of the options available\n"
+        "   within the TUI Graphing Calculator Program.\n",
+
+        "\n"
+        "8. Quit:\n"
+        "   This option allows the user to exit the program safely.\n"};
+
     menu_items = {" 1. Run ",
                   " 2. Input Function ",
                   " 3. Change Domain ",
