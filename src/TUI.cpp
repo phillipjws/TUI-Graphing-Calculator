@@ -75,6 +75,8 @@ void TUI::terminate() {
         delwin(status_window);
     if (result_window)
         delwin(result_window);
+    if (graph_window)
+        delwin(graph_window);
     endwin();
 }
 
@@ -591,22 +593,21 @@ void TUI::run_calculation() {
     double end = parameters.get_end();
     double step = parameters.get_step();
 
-    std::vector<std::pair<double, double>> results;
+    results_.clear();
     for (double x = start; x <= end; x += step) {
         parameters.set_variable_value(parameters.get_variable(), x);
         double y = parameters.evaluate_expression(x);
-        results.emplace_back(x, y);
+        results_.emplace_back(x, y);
     }
 
     if (parameters.get_output_status()) {
-        write_results_to_file(results);
+        write_results_to_file();
     } else {
-        show_results(results);
+        show_results();
     }
 }
 
-void TUI::write_results_to_file(
-    const std::vector<std::pair<double, double>> &results) {
+void TUI::write_results_to_file() {
     int max_x, max_y;
     getmaxyx(stdscr, max_y, max_x);
 
@@ -643,7 +644,7 @@ void TUI::write_results_to_file(
     if (!outfile) {
         mvwprintw(status_window, 1, 2, "Error opening output file.");
     } else {
-        for (const auto &[x, y] : results) {
+        for (const auto &[x, y] : results_) {
             outfile << x << " " << y << "\n";
         }
         std::string display_filename =
@@ -652,14 +653,19 @@ void TUI::write_results_to_file(
                   display_filename.c_str());
     }
 
-    mvwprintw(status_window, 8, 2, "Press 'B' to go back");
+    mvwprintw(status_window, 8, 2, "Press 'B' to go back or 'G' to view graph");
 
     wnoutrefresh(status_window);
     doupdate();
 
     int ch;
-    while ((ch = wgetch(status_window)) != 'b' && ch != 'B') {
-        // Do nothing, just wait for 'B' or 'b'
+    while (true) {
+        ch = wgetch(status_window);
+        if (ch == 'b' || ch == 'B') {
+            break;
+        } else if (ch == 'g' || ch == 'G') {
+            display_graph();
+        }
     }
 
     delwin(status_window);
@@ -669,12 +675,12 @@ void TUI::write_results_to_file(
     refresh();
 }
 
-void TUI::show_results(const std::vector<std::pair<double, double>> &results) {
+void TUI::show_results() {
     int max_x, max_y;
     getmaxyx(stdscr, max_y, max_x);
 
     int max_length = 0;
-    for (const auto &[x, y] : results) {
+    for (const auto &[x, y] : results_) {
         std::string x_str = std::to_string(x);
         std::string y_str = std::to_string(y);
         if (x_str.length() > max_length)
@@ -697,7 +703,7 @@ void TUI::show_results(const std::vector<std::pair<double, double>> &results) {
 
     int items_per_page = (result_height - 5);
     int total_pages =
-        (results.size() + items_per_page * 2 - 1) / (items_per_page * 2);
+        (results_.size() + items_per_page * 2 - 1) / (items_per_page * 2);
     int current_page = 0;
 
     bool continue_interaction = true;
@@ -708,14 +714,14 @@ void TUI::show_results(const std::vector<std::pair<double, double>> &results) {
 
         int start_index = current_page * items_per_page * 2;
         int end_index = std::min(start_index + items_per_page * 2,
-                                 static_cast<int>(results.size()));
+                                 static_cast<int>(results_.size()));
 
         for (int i = start_index; i < end_index; ++i) {
             int row = (i - start_index) % items_per_page;
             int col = (i - start_index) / items_per_page;
 
             mvwprintw(result_window, row + 1, col * (result_width / 2) + 3,
-                      "%-10.3f %-10.3f", results[i].first, results[i].second);
+                      "%-10.3f %-10.3f", results_[i].first, results_[i].second);
         }
 
         std::string page_info = "Page " + std::to_string(current_page + 1) +
@@ -723,8 +729,8 @@ void TUI::show_results(const std::vector<std::pair<double, double>> &results) {
         mvwprintw(result_window, result_height - 3,
                   (result_width - page_info.size()) / 2, "%s",
                   page_info.c_str());
-        mvwprintw(result_window, result_height - 2, (result_width - 21) / 2,
-                  "Press 'B' to go back");
+        mvwprintw(result_window, result_height - 2, (result_width - 42) / 2,
+                  "Press 'B' to go back or 'G' to view graph");
 
         wnoutrefresh(result_window);
         doupdate();
@@ -741,6 +747,10 @@ void TUI::show_results(const std::vector<std::pair<double, double>> &results) {
                 ++current_page;
             }
             break;
+        case 'g':
+        case 'G':
+            display_graph();
+            break;
         case 'b':
         case 'B':
             continue_interaction = false;
@@ -755,4 +765,119 @@ void TUI::show_results(const std::vector<std::pair<double, double>> &results) {
 
     touchwin(stdscr);
     refresh();
+}
+
+void TUI::display_graph() {
+    int terminal_max_x, terminal_max_y;
+    getmaxyx(stdscr, terminal_max_y, terminal_max_x);
+
+    // Determine the boundaries of the graph window
+    int graph_width = terminal_max_x - 10; // leave some padding
+    int graph_height = terminal_max_y - 10;
+
+    // User-specified or default domain/range
+    double graph_min_x = user_min_x_;
+    double graph_max_x = user_max_x_;
+    double graph_min_y = user_min_y_;
+    double graph_max_y = user_max_y_;
+
+    // Ensure the graph's range covers the data range
+    if (graph_min_x > graph_max_x)
+        std::swap(graph_min_x, graph_max_x);
+    if (graph_min_y > graph_max_y)
+        std::swap(graph_min_y, graph_max_y);
+
+    // Avoid division by zero in scaling
+    double x_range =
+        (graph_max_x - graph_min_x) != 0 ? (graph_max_x - graph_min_x) : 1;
+    double y_range =
+        (graph_max_y - graph_min_y) != 0 ? (graph_max_y - graph_min_y) : 1;
+
+    // Scale the results to fit within the graph dimensions
+    auto scale_x = [&](double x) {
+        return static_cast<int>(((x - graph_min_x) / x_range) * graph_width);
+    };
+    auto scale_y = [&](double y) {
+        return static_cast<int>(((y - graph_min_y) / y_range) * graph_height);
+    };
+
+    // Determine positions for the axes
+    int y_axis_pos = (graph_min_x <= 0 && graph_max_x >= 0) ? scale_x(0) : -1;
+    int x_axis_pos =
+        (graph_min_y <= 0 && graph_max_y >= 0) ? graph_height - scale_y(0) : -1;
+
+    // Draw the graph
+    graph_window = newwin(graph_height + 4, graph_width + 4, 3, 3);
+    box(graph_window, 0, 0);
+
+    // Display domain and range information at the top
+    mvwprintw(graph_window, 1, 2, "Domain: [%.2f, %.2f]", graph_min_x,
+              graph_max_x);
+    mvwprintw(graph_window, 2, 2, "Range: [%.2f, %.2f]", graph_min_y,
+              graph_max_y);
+
+    // Draw X and Y axes if they exist within the range
+    if (x_axis_pos != -1) {
+        for (int i = 0; i <= graph_width; ++i) {
+            mvwaddch(graph_window, x_axis_pos + 3, i + 2, '-'); // X-axis
+        }
+    }
+    if (y_axis_pos != -1) {
+        for (int i = 0; i <= graph_height; ++i) {
+            mvwaddch(graph_window, graph_height - i + 3, y_axis_pos + 2,
+                     '|'); // Y-axis
+        }
+        if (x_axis_pos != -1) {
+            mvwaddch(graph_window, x_axis_pos + 3, y_axis_pos + 2,
+                     '+'); // Origin
+        }
+    }
+
+    // Plot the points, skipping NaN values
+    for (const auto &[x, y] : results_) {
+        if (std::isnan(y))
+            continue; // Skip NaN values
+
+        // Ensure the points are within the user-defined domain and range
+        if (x < graph_min_x || x > graph_max_x || y < graph_min_y ||
+            y > graph_max_y) {
+            continue;
+        }
+
+        int scaled_x = scale_x(x);
+        int scaled_y = scale_y(y);
+
+        // Ensure points are within graph boundaries
+        if (scaled_x >= 0 && scaled_x <= graph_width && scaled_y >= 0 &&
+            scaled_y <= graph_height) {
+            mvwaddch(graph_window, graph_height - scaled_y + 3, scaled_x + 2,
+                     '*');
+        }
+    }
+
+    mvwprintw(graph_window, graph_height + 2, 2, "Press 'B' to go back");
+    wnoutrefresh(graph_window);
+    doupdate();
+
+    // Wait for user input to return
+    int ch;
+    while ((ch = wgetch(graph_window)) != 'b' && ch != 'B') {
+        // Wait for 'B' to go back
+    }
+
+    delwin(graph_window);
+    graph_window = nullptr;
+    touchwin(stdscr);
+    refresh();
+}
+
+void TUI::adjust_graph_domain_range() {
+    // Menu to allow user to set domain and range manually
+    // Here you would include options to input the user_min_x_, user_max_x_,
+    // user_min_y_, user_max_y_ Using get_single_number_input() or
+    // get_double_input() functions
+    get_single_number_input("Enter minimum X value:", user_min_x_);
+    get_single_number_input("Enter maximum X value:", user_max_x_);
+    get_single_number_input("Enter minimum Y value:", user_min_y_);
+    get_single_number_input("Enter maximum Y value:", user_max_y_);
 }

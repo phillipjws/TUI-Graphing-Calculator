@@ -42,21 +42,27 @@ class TUI {
                              bool &continue_interaction);
 
         void run_calculation();
-        void write_results_to_file(
-            const std::vector<std::pair<double, double>> &results);
-        void
-        show_results(const std::vector<std::pair<double, double>> &results);
+        void write_results_to_file();
+        void show_results();
 
-        void display_graph(const std::string &function);
+        void display_graph();
+        void adjust_graph_domain_range();
 
         WINDOW *main_window;
         WINDOW *menu_window;
         WINDOW *status_window;
         WINDOW *result_window;
+        WINDOW *graph_window;
         std::vector<std::string> menu_items;
+        std::vector<std::pair<double, double>> results_;
         int highlighted_item;
         int menu_size = 9;
         AnalysisParameters parameters;
+
+        int user_min_x_ = -10;
+        int user_max_x_ = 10;
+        int user_min_y_ = -5;
+        int user_max_y_ = 5;
 };
 
 #endif // TUI_HPP
