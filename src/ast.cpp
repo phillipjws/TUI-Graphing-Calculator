@@ -89,6 +89,12 @@ double FunctionNode::evaluate() const {
         return std::cos(arg_val);
     if (func == "tan")
         return std::tan(arg_val);
+    if (func == "arcsin")
+        return std::asin(arg_val);
+    if (func == "arccos")
+        return std::acos(arg_val);
+    if (func == "arctan")
+        return std::atan(arg_val);
     if (func == "log")
         return std::log10(arg_val);
     if (func == "ln")

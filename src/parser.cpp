@@ -109,8 +109,10 @@ std::unique_ptr<ASTNode> Parser::parse_primary() {
     }
 
     // Handle functions (sin, cos, etc.)
-    if (std::regex_match(tokens[current_token_index],
-                         std::regex(R"(\b(?:sin|cos|tan|log|ln|sqrt)\b)"))) {
+    if (std::regex_match(
+            tokens[current_token_index],
+            std::regex(
+                R"(\b(?:sin|cos|tan|arcsin|arccos|arctan|log|ln|sqrt)\b)"))) {
         std::string func = tokens[current_token_index++];
         if (tokens[current_token_index] != "(") {
             throw std::invalid_argument("Expected '(' after function '" + func +
