@@ -1,7 +1,18 @@
 #!/bin/bash
 
+
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+# Get the directory in which the currently running script is located.
+cmd_dir=$(dirname "$0") || panic "cannot determine command directory"
+
 # Ensure the calculator executable is in the same directory as this script or adjust the path accordingly.
-EXECUTABLE="calculator"
+EXECUTABLE="$cmd_dir/calculator"
 
 # Ensure the terminal supports the necessary features
 if ! command -v tput >/dev/null; then
