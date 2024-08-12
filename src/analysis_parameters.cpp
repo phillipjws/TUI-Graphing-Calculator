@@ -12,7 +12,7 @@
 
 // Constructor definition
 AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
-    : output_status_(false), variable_('x'), old_variable_('x') {
+    : variable_('x'), old_variable_('x') {
 
     // Initialize reserved characters
     reserved_chars = {
@@ -31,7 +31,6 @@ AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
     set_start(start);
     set_end(end);
     set_num_samples(num_samples);
-    set_output_status(false); // Assuming default is false
     set_output_directory_path(std::filesystem::current_path().string());
     set_expression(
         "sin(x)"); // This initializes the AST with the default expression
@@ -48,11 +47,6 @@ const int AnalysisParameters::get_num_samples() const { return num_samples_; }
 
 // Getter for step_
 const double AnalysisParameters::get_step() const { return step_; }
-
-// Getter for output_status_
-const bool AnalysisParameters::get_output_status() const {
-    return output_status_;
-}
 
 // Getter for variable_
 const char AnalysisParameters::get_variable() const { return variable_; }
@@ -108,14 +102,6 @@ std::string AnalysisParameters::display_num_step() const {
                        ss.str());
 }
 
-// Display the output status as a string
-std::string AnalysisParameters::display_output_status() const {
-    if (output_status_) {
-        return "Enable output file is: On";
-    }
-    return "Enable output file is: Off";
-}
-
 // Display the current variable as a string
 std::string AnalysisParameters::display_variable() const {
     return std::format("Independent variable: {}", variable_);
@@ -124,18 +110,15 @@ std::string AnalysisParameters::display_variable() const {
 // Display the current output directory path as a string
 std::string
 AnalysisParameters::display_output_directory_path(int max_width) const {
-    if (output_status_) {
-        std::string prompt = "Current output directory is: ";
-        std::string path = output_directory_path_.string();
+    std::string prompt = "Current output directory is: ";
+    std::string path = output_directory_path_.string();
 
-        int available_space = max_width - prompt.length();
-        if (path.length() > available_space) {
-            path = "..." + path.substr(path.length() - available_space + 3);
-        }
-
-        return std::format("{}{}", prompt, path);
+    int available_space = max_width - prompt.length();
+    if (path.length() > available_space) {
+        path = "..." + path.substr(path.length() - available_space + 3);
     }
-    return "Enable output file is off, will not save any output.";
+
+    return std::format("{}{}", prompt, path);
 }
 
 // Display the current expression as a string
@@ -171,11 +154,6 @@ void AnalysisParameters::set_num_samples(int new_samples) {
         throw std::invalid_argument("Invalid Parameters: Number of samples "
                                     "must be between 100 and 100000");
     }
-}
-
-// Setter for output_status_
-void AnalysisParameters::set_output_status(bool choice) {
-    output_status_ = choice;
 }
 
 // Setter for variable_

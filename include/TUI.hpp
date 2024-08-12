@@ -32,18 +32,16 @@ class TUI {
                                 bool &continue_interaction);
         void handle_domain(int ch, std::string &message,
                            bool &continue_interaction);
-        void handle_output_status(int ch, std::string &message,
-                                  bool &continue_interaction);
         void handle_output_directory(int ch, std::string &message,
                                      bool &continue_interaction);
         void handle_variable(int ch, std::string &message,
                              bool &continue_interaction);
         void handle_function(int ch, std::string &message,
                              bool &continue_interaction);
+        void handle_running(int ch, std::string &message,
+                            bool &continue_interaction);
 
         void run_calculation();
-        void write_results_to_file();
-        void show_results();
 
         void display_graph();
         void adjust_graph_domain_range();
@@ -56,7 +54,7 @@ class TUI {
         std::vector<std::string> menu_items;
         std::vector<std::pair<double, double>> results_;
         int highlighted_item;
-        int menu_size = 9;
+        int menu_size = 8;
         AnalysisParameters parameters;
 
         int user_min_x_ = -10;

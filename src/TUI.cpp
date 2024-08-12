@@ -17,10 +17,9 @@ TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000) {
                   " 3. Change Domain ",
                   " 4. Change Independent Variable ",
                   " 5. Change amount of Sample Points ",
-                  " 6. Enable Output File ",
-                  " 7. Set Export Directory ",
-                  " 8. Help ",
-                  " 9. Quit "};
+                  " 6. Set Export Directory ",
+                  " 7. Help ",
+                  " 8. Quit "};
 }
 
 TUI::~TUI() { terminate(); }
@@ -169,7 +168,6 @@ void TUI::handle_input() {
     case '6':
     case '7':
     case '8':
-    case '9':
         highlighted_item = ch - '1';
         break;
     case '\n':
@@ -184,8 +182,9 @@ void TUI::execute_command(int command) {
     std::string message;
     switch (command) {
     case 0: // Run Function
-        run_calculation();
-        return;
+        // run_calculation();
+        message = "Ran calculation: " + parameters.display_expression();
+        break;
     case 1: // Input Function
         message = parameters.display_expression();
         break;
@@ -198,17 +197,14 @@ void TUI::execute_command(int command) {
     case 4: // Change Number of Sample Points
         message = parameters.display_num_step();
         break;
-    case 5: // Enable Output File
-        message = parameters.display_output_status();
-        break;
-    case 6: // Set Export Directory
+    case 5: // Set Export Directory
         message =
             parameters.display_output_directory_path(STATUS_WINDOW_WIDTH - 4);
         break;
-    case 7: // Help
+    case 6: // Help
         message = "Help is not yet implemented.";
         break;
-    case 8: // Quit
+    case 7: // Quit
         terminate();
         exit(0);
     default:
@@ -391,7 +387,10 @@ void TUI::show_status(const std::string &initial_message, int command) {
         mvwprintw(status_window, 1, 2, "%s", message.c_str());
         mvwprintw(status_window, 8, 2, "Press 'B' to go back");
 
-        if (command == 1) {
+        if (command == 0) {
+            mvwprintw(status_window, 3, 2,
+                      "Press 'O' to save output to file or 'G' to view graph");
+        } else if (command == 1) {
             mvwprintw(status_window, 3, 2, "Press 'C' to change function");
         } else if (command == 2) {
             mvwprintw(status_window, 3, 2,
@@ -404,9 +403,6 @@ void TUI::show_status(const std::string &initial_message, int command) {
                       "Press 'N' to change number of samples");
         } else if (command == 5) {
             mvwprintw(status_window, 3, 2,
-                      "Press 'T' or 'F' to enable or disable output file");
-        } else if (command == 6 && parameters.get_output_status()) {
-            mvwprintw(status_window, 3, 2,
                       "Press 'D' to change the output directory");
         }
 
@@ -415,6 +411,13 @@ void TUI::show_status(const std::string &initial_message, int command) {
 
         int ch = wgetch(status_window);
         switch (ch) {
+        case 'o':
+        case 'O':
+        case 'g':
+        case 'G':
+            if (command == 0)
+                handle_running(ch, message, continue_interaction);
+            break;
         case 'c':
         case 'C':
             if (command == 1)
@@ -436,13 +439,6 @@ void TUI::show_status(const std::string &initial_message, int command) {
         case 'N':
             if (command == 4)
                 handle_sample_size(ch, message, continue_interaction);
-            break;
-        case 't':
-        case 'T':
-        case 'f':
-        case 'F':
-            if (command == 5)
-                handle_output_status(ch, message, continue_interaction);
             break;
         case 'd':
         case 'D':
@@ -521,16 +517,6 @@ void TUI::handle_domain(int ch, std::string &message,
     }
 }
 
-void TUI::handle_output_status(int ch, std::string &message,
-                               bool &continue_interaction) {
-    if (ch == 't' || ch == 'T') {
-        parameters.set_output_status(true);
-    } else if (ch == 'f' || ch == 'F') {
-        parameters.set_output_status(false);
-    }
-    message = parameters.display_output_status();
-}
-
 void TUI::handle_output_directory(int ch, std::string &message,
                                   bool &continue_interaction) {
     if (ch == 'd' || ch == 'D') {
@@ -596,6 +582,52 @@ void TUI::handle_function(int ch, std::string &message,
     }
 }
 
+void TUI::handle_running(int ch, std::string &message,
+                         bool &continue_interaction) {
+    run_calculation();
+    if (ch == 'o' || ch == 'O') {
+        std::string filename;
+        get_string_input(
+            "Enter filename to save to, output will save to <filename>.txt: ",
+            filename);
+
+        std::string filepath =
+            (parameters.get_output_directory_path() / filename).string();
+
+        std::string full_filepath = filepath + ".txt";
+
+        int file_index = 0;
+        while (std::ifstream(full_filepath)) {
+            file_index++;
+            full_filepath = filepath + std::to_string(file_index) + ".txt";
+        }
+
+        std::ofstream outfile(full_filepath);
+
+        werase(status_window);
+        box(status_window, 0, 0);
+
+        if (!outfile) {
+            mvwprintw(status_window, 1, 2, "Error opening output file.");
+        } else {
+            for (const auto &[x, y] : results_) {
+                outfile << x << " " << y << "\n";
+            }
+            std::string display_filename =
+                full_filepath.substr(full_filepath.find_last_of("/") + 1);
+            mvwprintw(status_window, 3, 2, "Results written to: %s",
+                      display_filename.c_str());
+            mvwprintw(status_window, 8, 2, "Press any key to continue...");
+            wnoutrefresh(status_window);
+            doupdate();
+            wgetch(status_window);
+        }
+
+    } else if (ch == 'g' || ch == 'G') {
+        display_graph();
+    }
+}
+
 void TUI::run_calculation() {
     double start = parameters.get_start();
     double end = parameters.get_end();
@@ -607,179 +639,6 @@ void TUI::run_calculation() {
         double y = parameters.evaluate_expression(x);
         results_.emplace_back(x, y);
     }
-
-    if (parameters.get_output_status()) {
-        write_results_to_file();
-    } else {
-        show_results();
-    }
-}
-
-void TUI::write_results_to_file() {
-    int max_x, max_y;
-    getmaxyx(stdscr, max_y, max_x);
-
-    int status_height = 10;
-    int status_width = STATUS_WINDOW_WIDTH;
-    int status_start_y = (max_y - status_height) / 2; // Center vertically
-    int status_start_x = (max_x - status_width) / 2;  // Center horizontally
-
-    status_window =
-        newwin(status_height, status_width, status_start_y, status_start_x);
-    keypad(status_window, TRUE);   // Enable keypad input
-    nodelay(status_window, FALSE); // Disable non-blocking input
-    std::string filename;
-    get_string_input(
-        "Enter filename to save to, output will save to <filename>.txt: ",
-        filename);
-
-    std::string filepath =
-        (parameters.get_output_directory_path() / filename).string();
-
-    std::string full_filepath = filepath + ".txt";
-
-    int file_index = 0;
-    while (std::ifstream(full_filepath)) {
-        file_index++;
-        full_filepath = filepath + std::to_string(file_index) + ".txt";
-    }
-
-    std::ofstream outfile(full_filepath);
-
-    werase(status_window);
-    box(status_window, 0, 0);
-
-    if (!outfile) {
-        mvwprintw(status_window, 1, 2, "Error opening output file.");
-    } else {
-        for (const auto &[x, y] : results_) {
-            outfile << x << " " << y << "\n";
-        }
-        std::string display_filename =
-            full_filepath.substr(full_filepath.find_last_of("/") + 1);
-        mvwprintw(status_window, 3, 2, "Results written to: %s",
-                  display_filename.c_str());
-    }
-
-    mvwprintw(status_window, 8, 2, "Press 'B' to go back or 'G' to view graph");
-
-    wnoutrefresh(status_window);
-    doupdate();
-
-    int ch;
-    while (true) {
-        ch = wgetch(status_window);
-        if (ch == 'b' || ch == 'B') {
-            break;
-        } else if (ch == 'g' || ch == 'G') {
-            display_graph();
-        }
-    }
-
-    delwin(status_window);
-    status_window = nullptr;
-
-    touchwin(stdscr);
-    refresh();
-}
-
-void TUI::show_results() {
-    int max_x, max_y;
-    getmaxyx(stdscr, max_y, max_x);
-
-    int max_length = 0;
-    for (const auto &[x, y] : results_) {
-        std::string x_str = std::to_string(x);
-        std::string y_str = std::to_string(y);
-        if (x_str.length() > max_length)
-            max_length = x_str.length();
-        if (y_str.length() > max_length)
-            max_length = y_str.length();
-    }
-
-    int result_height = static_cast<int>(max_y * 2 / 3.0) + 1;
-    int padding = 4;
-    int column_width = max_length + 4 * padding;
-    int result_width = 2 * column_width;
-    int result_start_y = (max_y - result_height) / 2;
-    int result_start_x = (max_x - result_width) / 2;
-
-    result_window =
-        newwin(result_height, result_width, result_start_y, result_start_x);
-    keypad(result_window, TRUE);
-    nodelay(result_window, FALSE);
-
-    int items_per_page = (result_height - 5);
-    int total_pages =
-        (results_.size() + items_per_page * 2 - 1) / (items_per_page * 2);
-    int current_page = 0;
-
-    bool continue_interaction = true;
-
-    while (continue_interaction) {
-        werase(result_window);
-        box(result_window, 0, 0);
-
-        int start_index = current_page * items_per_page * 2;
-        int end_index = std::min(start_index + items_per_page * 2,
-                                 static_cast<int>(results_.size()));
-
-        for (int i = start_index; i < end_index; ++i) {
-            int row = (i - start_index) % items_per_page;
-            int col = (i - start_index) / items_per_page;
-
-            mvwprintw(result_window, row + 1, col * (result_width / 2) + 3,
-                      "%-10.3f %-10.3f", results_[i].first, results_[i].second);
-        }
-
-        std::string page_info = "Page " + std::to_string(current_page + 1) +
-                                " of " + std::to_string(total_pages);
-        mvwprintw(result_window, result_height - 3,
-                  (result_width - page_info.size()) / 2, "%s",
-                  page_info.c_str());
-        mvwprintw(result_window, result_height - 2, (result_width - 42) / 2,
-                  "Press 'B' to go back or 'G' to view graph");
-
-        wnoutrefresh(result_window);
-        doupdate();
-
-        int ch = wgetch(result_window);
-        switch (ch) {
-        case KEY_LEFT:
-            if (current_page > 0) {
-                --current_page;
-            }
-            break;
-        case KEY_RIGHT:
-            if (current_page < total_pages - 1) {
-                ++current_page;
-            }
-            break;
-        case 'g':
-        case 'G':
-            display_graph();
-            break;
-        case 'b':
-        case 'B':
-            continue_interaction = false;
-            break;
-        default:
-            break;
-        }
-    }
-
-    delwin(result_window);
-    result_window = nullptr;
-
-    clear();
-    draw_main();
-    draw_menu();
-
-    // Refresh all windows
-    wnoutrefresh(menu_window);
-    wnoutrefresh(stdscr);
-    doupdate();
-    touchwin(stdscr);
 }
 
 void TUI::display_graph() {
@@ -889,13 +748,13 @@ void TUI::display_graph() {
         }
     }
 
-    mvwprintw(graph_window, 2, (graph_width + 4 - parameters.display_expression().length()) / 2, parameters.display_expression().c_str());
+    mvwprintw(graph_window, 2,
+              (graph_width + 4 - parameters.display_expression().length()) / 2,
+              parameters.display_expression().c_str());
 
     // Display domain and range information at the top, outside the inner box
-    mvwprintw(graph_window, 1, 2, "Domain: [%.2f, %.2f]", graph_min_x,
-              graph_max_x);
-    mvwprintw(graph_window, 2, 2, "Range: [%.2f, %.2f]", graph_min_y,
-              graph_max_y);
+    mvwprintw(graph_window, 1, 2, "Domain: [%d, %d]", user_min_x_, user_max_x_);
+    mvwprintw(graph_window, 2, 2, "Range: [%d, %d]", user_min_y_, user_max_y_);
 
     // Display command instructions at the bottom, outside the inner box
     mvwprintw(graph_window, graph_height + 2, 2,
@@ -923,16 +782,11 @@ void TUI::display_graph() {
     refresh();
 
     // Clear and redraw the entire screen
-    draw_main();  // Redraw the title and main elements
-    draw_menu();  // Redraw the menu window
+    draw_main(); // Redraw the title and main elements
+    draw_menu(); // Redraw the menu window
 
     wnoutrefresh(menu_window);
     wnoutrefresh(stdscr);
-
-    // If the output file is enabled, make sure the status window is also refreshed
-    if (parameters.get_output_status()) {
-        show_results();
-    }
 
     doupdate();
 }
@@ -954,11 +808,57 @@ void TUI::adjust_graph_domain_range() {
     wnoutrefresh(status_window);
     doupdate();
 
-    // Ask user for domain and range values
-    get_single_number_input("Enter minimum X value: ", user_min_x_);
-    get_single_number_input("Enter maximum X value: ", user_max_x_);
-    get_single_number_input("Enter minimum Y value: ", user_min_y_);
-    get_single_number_input("Enter maximum Y value: ", user_max_y_);
+    int min_x, max_x_value, min_y, max_y_value;
+    bool valid_input = false;
+
+    // Loop for X values
+    while (!valid_input) {
+        get_single_number_input("Enter minimum X value: ", min_x);
+        get_single_number_input("Enter maximum X value: ", max_x_value);
+
+        if (min_x >= parameters.get_start() &&
+            max_x_value <= parameters.get_end() && min_x < max_x_value) {
+            valid_input = true;
+        } else {
+            if (min_x >= max_x_value) {
+                mvwprintw(status_window, 5, 2,
+                          "Invalid Window Settings: Minimum X must be less "
+                          "than Maximum X.");
+            } else {
+                mvwprintw(status_window, 5, 2,
+                          "Invalid Window Setting: Window cannot be wider than "
+                          "domain.");
+            }
+            wnoutrefresh(status_window);
+            doupdate();
+            wgetch(status_window); // Wait for keypress
+        }
+    }
+
+    valid_input = false;
+
+    // Loop for Y values
+    while (!valid_input) {
+        get_single_number_input("Enter minimum Y value: ", min_y);
+        get_single_number_input("Enter maximum Y value: ", max_y_value);
+
+        if (min_y < max_y_value) {
+            valid_input = true;
+        } else {
+            mvwprintw(status_window, 5, 2,
+                      "Invalid Window Settings: Minimum Y must be less than "
+                      "Maximum Y.");
+            wnoutrefresh(status_window);
+            doupdate();
+            wgetch(status_window); // Wait for keypress
+        }
+    }
+
+    // Assign valid values to the class members
+    user_min_x_ = min_x;
+    user_max_x_ = max_x_value;
+    user_min_y_ = min_y;
+    user_max_y_ = max_y_value;
 
     delwin(status_window);
     status_window = nullptr;

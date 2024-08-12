@@ -15,7 +15,6 @@ class AnalysisParameters {
         const int get_end() const;
         const int get_num_samples() const;
         const double get_step() const;
-        const bool get_output_status() const;
         const char get_variable() const;
         const double get_variable_value(char variable) const;
         const std::filesystem::path get_output_directory_path() const;
@@ -24,7 +23,6 @@ class AnalysisParameters {
 
         std::string display_domain() const;
         std::string display_num_step() const;
-        std::string display_output_status() const;
         std::string display_variable() const;
         std::string display_output_directory_path(int max_width) const;
         std::string display_expression() const;
@@ -32,7 +30,6 @@ class AnalysisParameters {
         void set_start(int new_start);
         void set_end(int new_end);
         void set_num_samples(int new_samples);
-        void set_output_status(bool choice);
         void set_variable(char new_variable);
         void set_output_directory_path(std::string new_dir);
         void set_expression(const std::string &new_expression);
@@ -48,8 +45,7 @@ class AnalysisParameters {
 
         double evaluate_expression(double variable_value);
 
-        void set_variable_value(char variable,
-                                double value); // New setter method
+        void set_variable_value(char variable, double value);
 
         static const int MAX_SAMPLES = 100000;
         static const int MIN_SAMPLES = 100;
@@ -59,7 +55,6 @@ class AnalysisParameters {
         int end_;
         int num_samples_;
         double step_;
-        bool output_status_;
         char variable_;
         char old_variable_;
         std::filesystem::path output_directory_path_;
