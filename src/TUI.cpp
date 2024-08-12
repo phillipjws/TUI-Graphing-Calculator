@@ -850,18 +850,24 @@ void TUI::display_graph() {
         // Ensure points are within graph boundaries
         if (scaled_x >= 0 && scaled_x <= graph_width && scaled_y >= 0 &&
             scaled_y <= graph_height) {
-            mvwaddch(graph_window, graph_height - scaled_y + 3, scaled_x + 2,
+            mvwaddch(graph_window, graph_height - scaled_y + 2, scaled_x + 2,
                      '*');
         }
     }
 
-    mvwprintw(graph_window, graph_height + 2, 2, "Press 'B' to go back");
+    mvwprintw(graph_window, graph_height + 1, 2,
+              "Press 'B' to go back or 'V' to change the view");
     wnoutrefresh(graph_window);
     doupdate();
 
     // Wait for user input to return
     int ch;
     while ((ch = wgetch(graph_window)) != 'b' && ch != 'B') {
+        if (ch == 'v' || ch == 'V') {
+            adjust_graph_domain_range();
+            display_graph();
+            return; // Redraw the graph with the new domain/range
+        }
         // Wait for 'B' to go back
     }
 
@@ -872,12 +878,31 @@ void TUI::display_graph() {
 }
 
 void TUI::adjust_graph_domain_range() {
-    // Menu to allow user to set domain and range manually
-    // Here you would include options to input the user_min_x_, user_max_x_,
-    // user_min_y_, user_max_y_ Using get_single_number_input() or
-    // get_double_input() functions
+    int status_height = 10;
+    int status_width = STATUS_WINDOW_WIDTH;
+    int max_x, max_y;
+    getmaxyx(stdscr, max_y, max_x);
+
+    int status_start_y = (max_y - status_height) / 2;
+    int status_start_x = (max_x - status_width) / 2;
+
+    status_window =
+        newwin(status_height, status_width, status_start_y, status_start_x);
+    keypad(status_window, TRUE);
+    nodelay(status_window, FALSE);
+    box(status_window, 0, 0);
+    wnoutrefresh(status_window);
+    doupdate();
+
+    // Ask user for domain and range values
     get_single_number_input("Enter minimum X value:", user_min_x_);
     get_single_number_input("Enter maximum X value:", user_max_x_);
     get_single_number_input("Enter minimum Y value:", user_min_y_);
     get_single_number_input("Enter maximum Y value:", user_max_y_);
+
+    delwin(status_window);
+    status_window = nullptr;
+
+    touchwin(stdscr);
+    refresh();
 }
