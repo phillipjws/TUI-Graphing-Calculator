@@ -12,7 +12,7 @@
 
 // Constructor definition
 AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
-    : variable_('x'), old_variable_('x') {
+    : variable_('x'), old_variable_('x'), start_(start), end_(end) {
 
     // Initialize reserved characters
     reserved_chars = {
@@ -28,8 +28,6 @@ AnalysisParameters::AnalysisParameters(int start, int end, int num_samples)
     };
 
     // Use setters to initialize members
-    set_start(start);
-    set_end(end);
     set_num_samples(num_samples);
     set_output_directory_path(std::filesystem::current_path().string());
     set_expression(
