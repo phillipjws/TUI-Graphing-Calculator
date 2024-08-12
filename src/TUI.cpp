@@ -11,15 +11,15 @@ constexpr int STATUS_WINDOW_WIDTH = 85;
 TUI::TUI() : highlighted_item(0), parameters(-100, 100, 10000) {
     menu_window = nullptr;
     status_window = nullptr;
-    menu_items = {"Run",
-                  "Input Function",
-                  "Change Domain",
-                  "Change Independent Variable",
-                  "Change amount of Sample Points",
-                  "Enable Output File",
-                  "Set Export Directory",
-                  "Help",
-                  "Quit"};
+    menu_items = {" 1. Run ",
+                  " 2. Input Function ",
+                  " 3. Change Domain ",
+                  " 4. Change Independent Variable ",
+                  " 5. Change amount of Sample Points ",
+                  " 6. Enable Output File ",
+                  " 7. Set Export Directory ",
+                  " 8. Help ",
+                  " 9. Quit "};
 }
 
 TUI::~TUI() { terminate(); }
@@ -45,7 +45,7 @@ void TUI::initialize() {
 
     // Menu window setup
     int menu_height = menu_size + 2;
-    int menu_width = 35;
+    int menu_width = 39;
     int menu_start_y = max_y - menu_height - 4;
     int menu_start_x = 6;
 
@@ -163,6 +163,17 @@ void TUI::handle_input() {
         ++highlighted_item;
         if (highlighted_item >= menu_size)
             --highlighted_item;
+        break;
+    case '1':  // Handle number input
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+        highlighted_item = ch - '1';
         break;
     case '\n':
         execute_command(highlighted_item);
@@ -775,6 +786,28 @@ void TUI::display_graph() {
     int graph_width = terminal_max_x - 10; // leave some padding
     int graph_height = terminal_max_y - 10;
 
+    // Create the graph window
+    graph_window = newwin(graph_height + 4, graph_width + 4, 3, 3);
+    box(graph_window, 0, 0);
+
+    // Define the dimensions and position for the inner box
+    int inner_start_y = 3;
+    int inner_start_x = 3;
+    int inner_width = graph_width - 3; // Adjust for padding
+    int inner_height = graph_height - 2; // Adjust for padding
+
+    // Draw the inner box
+    mvwhline(graph_window, inner_start_y, inner_start_x, 0, inner_width);
+    mvwhline(graph_window, inner_start_y + inner_height, inner_start_x, 0, inner_width);
+    mvwvline(graph_window, inner_start_y, inner_start_x, 0, inner_height);
+    mvwvline(graph_window, inner_start_y, inner_start_x + inner_width, 0, inner_height);
+
+    // Draw corners of the inner box
+    mvwaddch(graph_window, inner_start_y, inner_start_x, ACS_ULCORNER);
+    mvwaddch(graph_window, inner_start_y, inner_start_x + inner_width, ACS_URCORNER);
+    mvwaddch(graph_window, inner_start_y + inner_height, inner_start_x, ACS_LLCORNER);
+    mvwaddch(graph_window, inner_start_y + inner_height, inner_start_x + inner_width, ACS_LRCORNER);
+
     // User-specified or default domain/range
     double graph_min_x = user_min_x_;
     double graph_max_x = user_max_x_;
@@ -793,43 +826,31 @@ void TUI::display_graph() {
     double y_range =
         (graph_max_y - graph_min_y) != 0 ? (graph_max_y - graph_min_y) : 1;
 
-    // Scale the results to fit within the graph dimensions
+    // Scale the results to fit within the inner box dimensions
     auto scale_x = [&](double x) {
-        return static_cast<int>(((x - graph_min_x) / x_range) * graph_width);
+        return inner_start_x + static_cast<int>(((x - graph_min_x) / x_range) * inner_width);
     };
     auto scale_y = [&](double y) {
-        return static_cast<int>(((y - graph_min_y) / y_range) * graph_height);
+        return inner_start_y + static_cast<int>(((y - graph_min_y) / y_range) * inner_height);
     };
 
     // Determine positions for the axes
     int y_axis_pos = (graph_min_x <= 0 && graph_max_x >= 0) ? scale_x(0) : -1;
     int x_axis_pos =
-        (graph_min_y <= 0 && graph_max_y >= 0) ? graph_height - scale_y(0) : -1;
-
-    // Draw the graph
-    graph_window = newwin(graph_height + 4, graph_width + 4, 3, 3);
-    box(graph_window, 0, 0);
-
-    // Display domain and range information at the top
-    mvwprintw(graph_window, 1, 2, "Domain: [%.2f, %.2f]", graph_min_x,
-              graph_max_x);
-    mvwprintw(graph_window, 2, 2, "Range: [%.2f, %.2f]", graph_min_y,
-              graph_max_y);
+        (graph_min_y <= 0 && graph_max_y >= 0) ? inner_height - scale_y(0) + inner_start_y : -1;
 
     // Draw X and Y axes if they exist within the range
     if (x_axis_pos != -1) {
-        for (int i = 0; i <= graph_width; ++i) {
-            mvwaddch(graph_window, x_axis_pos + 3, i + 2, '-'); // X-axis
+        for (int i = inner_start_x + 1; i < inner_start_x + inner_width; ++i) {
+            mvwaddch(graph_window, x_axis_pos, i, '-'); // X-axis
         }
     }
     if (y_axis_pos != -1) {
-        for (int i = 0; i <= graph_height; ++i) {
-            mvwaddch(graph_window, graph_height - i + 3, y_axis_pos + 2,
-                     '|'); // Y-axis
+        for (int i = inner_start_y + 1; i < inner_start_y + inner_height; ++i) {
+            mvwaddch(graph_window, i, y_axis_pos, '|'); // Y-axis
         }
         if (x_axis_pos != -1) {
-            mvwaddch(graph_window, x_axis_pos + 3, y_axis_pos + 2,
-                     '+'); // Origin
+            mvwaddch(graph_window, x_axis_pos, y_axis_pos, '+'); // Origin
         }
     }
 
@@ -845,18 +866,22 @@ void TUI::display_graph() {
         }
 
         int scaled_x = scale_x(x);
-        int scaled_y = scale_y(y);
+        int scaled_y = inner_start_y + inner_height - scale_y(y);
 
         // Ensure points are within graph boundaries
-        if (scaled_x >= 0 && scaled_x <= graph_width && scaled_y >= 0 &&
-            scaled_y <= graph_height) {
-            mvwaddch(graph_window, graph_height - scaled_y + 2, scaled_x + 2,
-                     '*');
+        if (scaled_x > inner_start_x && scaled_x < inner_start_x + inner_width &&
+            scaled_y > inner_start_y && scaled_y < inner_start_y + inner_height) {
+            mvwaddch(graph_window, scaled_y, scaled_x, '*');
         }
     }
 
-    mvwprintw(graph_window, graph_height + 1, 2,
-              "Press 'B' to go back or 'V' to change the view");
+    // Display domain and range information at the top, outside the inner box
+    mvwprintw(graph_window, 1, 2, "Domain: [%.2f, %.2f]", graph_min_x, graph_max_x);
+    mvwprintw(graph_window, 2, 2, "Range: [%.2f, %.2f]", graph_min_y, graph_max_y);
+
+    // Display command instructions at the bottom, outside the inner box
+    mvwprintw(graph_window, graph_height + 2, 2, "Press 'B' to go back or 'V' to change the view");
+
     wnoutrefresh(graph_window);
     doupdate();
 
