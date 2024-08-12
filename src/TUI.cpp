@@ -82,10 +82,6 @@ void TUI::terminate() {
 }
 
 void TUI::draw_main() {
-    static bool first_draw = true;
-    if (!first_draw)
-        return;
-    first_draw = false;
 
     std::vector<std::string> title = {
         " ______  __  __   __                                                  "
@@ -775,8 +771,15 @@ void TUI::show_results() {
     delwin(result_window);
     result_window = nullptr;
 
+    clear();
+    draw_main();
+    draw_menu();
+
+    // Refresh all windows
+    wnoutrefresh(menu_window);
+    wnoutrefresh(stdscr);
+    doupdate();
     touchwin(stdscr);
-    refresh();
 }
 
 void TUI::display_graph() {
@@ -886,6 +889,8 @@ void TUI::display_graph() {
         }
     }
 
+    mvwprintw(graph_window, 2, (graph_width + 4 - parameters.display_expression().length()) / 2, parameters.display_expression().c_str());
+
     // Display domain and range information at the top, outside the inner box
     mvwprintw(graph_window, 1, 2, "Domain: [%.2f, %.2f]", graph_min_x,
               graph_max_x);
@@ -894,7 +899,7 @@ void TUI::display_graph() {
 
     // Display command instructions at the bottom, outside the inner box
     mvwprintw(graph_window, graph_height + 2, 2,
-              "Press 'B' to go back or 'V' to change the view");
+              "Press 'B' to go back or 'W' to change the window settings");
 
     wnoutrefresh(graph_window);
     doupdate();
@@ -902,7 +907,7 @@ void TUI::display_graph() {
     // Wait for user input to return
     int ch;
     while ((ch = wgetch(graph_window)) != 'b' && ch != 'B') {
-        if (ch == 'v' || ch == 'V') {
+        if (ch == 'w' || ch == 'W') {
             adjust_graph_domain_range();
             display_graph();
             return; // Redraw the graph with the new domain/range
@@ -912,8 +917,24 @@ void TUI::display_graph() {
 
     delwin(graph_window);
     graph_window = nullptr;
-    touchwin(stdscr);
+
+    // Clear the entire screen and force refresh
+    clear();
     refresh();
+
+    // Clear and redraw the entire screen
+    draw_main();  // Redraw the title and main elements
+    draw_menu();  // Redraw the menu window
+
+    wnoutrefresh(menu_window);
+    wnoutrefresh(stdscr);
+
+    // If the output file is enabled, make sure the status window is also refreshed
+    if (parameters.get_output_status()) {
+        show_results();
+    }
+
+    doupdate();
 }
 
 void TUI::adjust_graph_domain_range() {
@@ -934,14 +955,15 @@ void TUI::adjust_graph_domain_range() {
     doupdate();
 
     // Ask user for domain and range values
-    get_single_number_input("Enter minimum X value:", user_min_x_);
-    get_single_number_input("Enter maximum X value:", user_max_x_);
-    get_single_number_input("Enter minimum Y value:", user_min_y_);
-    get_single_number_input("Enter maximum Y value:", user_max_y_);
+    get_single_number_input("Enter minimum X value: ", user_min_x_);
+    get_single_number_input("Enter maximum X value: ", user_max_x_);
+    get_single_number_input("Enter minimum Y value: ", user_min_y_);
+    get_single_number_input("Enter maximum Y value: ", user_max_y_);
 
     delwin(status_window);
     status_window = nullptr;
 
     touchwin(stdscr);
-    refresh();
+    wnoutrefresh(graph_window);
+    doupdate();
 }
