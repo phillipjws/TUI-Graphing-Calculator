@@ -1,7 +1,0 @@
-name "Phillip Steeves"
-student_id "V00975121"
-email "phillipjws@uvic.ca"
-term "2024-05"
-course "SENG475"
-section "T01"
-assignment "cpp_project"
