@@ -29,7 +29,7 @@ Follow these steps to build the software:
 1. Clone the Repository:
 
    ```
-   git clone <repository-url>
+   git clone https://github.com/phillipjws/TUI-Graphing-Calculator
    cd project-directory
    ```
 
