@@ -28,13 +28,17 @@ Follow these steps to build the software:
 
 1. Clone the Repository:
 
-   ```git clone <repository-url>
-   cd project-directory```
+   ```
+   git clone <repository-url>
+   cd project-directory
+   ```
 
 3. Create a Build Directory:
 
-   ```mkdir build
-   cd build```
+   ```
+   mkdir build
+   cd build
+   ```
 
 4. Run CMake to Generate Makefiles:
 
