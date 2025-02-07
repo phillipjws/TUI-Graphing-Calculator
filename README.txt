@@ -27,26 +27,26 @@ Build Instructions
 Follow these steps to build the software:
 
 1. Clone the Repository:
-   git clone <repository-url>
-   cd project-directory
+   ```git clone <repository-url>
+   cd project-directory```
 
 2. Create a Build Directory:
-   mkdir build
-   cd build
+   ```mkdir build
+   cd build```
 
 3. Run CMake to Generate Makefiles:
-   cmake ..
+   ```cmake ..```
    This step configures the project based on your environment, checks for required dependencies, and generates the necessary makefiles.
 
 4. Compile the Project:
-   make
+   ```make```
    This command compiles the source code into an executable. Any compilation errors related to dependencies or code issues will be displayed here.
 
 Installing the Software
 -----------------------
 To install the software to your system, execute the following command after building:
 
-make install
+```make install```
 
 This command installs the calculator executable to the ${CMAKE_INSTALL_PREFIX}/bin directory and copies the necessary header files to ${CMAKE_INSTALL_PREFIX}/include. Ensure that your environment’s PATH variable includes the installation directory so that the calculator can be run from any location in the terminal.
 
@@ -56,7 +56,7 @@ Starting the Calculator
 -----------------------
 To start the calculator, navigate to the installation directory (or ensure it is in your PATH) and run:
 
-./calculator
+```./calculator```
 
 This command launches the TUI, allowing you to interact with the calculator's features.
 
@@ -163,7 +163,7 @@ File Handling Errors:
 Example Workflow
 ================
 1. Start the calculator:
-   ./calculator
+   ```./calculator```
 
 2. Change the domain to [0, 100]:
    - Navigate to "Change Domain" and set the start to 0 and the end to 100.
