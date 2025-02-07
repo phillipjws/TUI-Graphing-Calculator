@@ -27,19 +27,25 @@ Build Instructions
 Follow these steps to build the software:
 
 1. Clone the Repository:
+
    ```git clone <repository-url>
    cd project-directory```
 
-2. Create a Build Directory:
+3. Create a Build Directory:
+
    ```mkdir build
    cd build```
 
-3. Run CMake to Generate Makefiles:
+4. Run CMake to Generate Makefiles:
+
    ```cmake ..```
+
    This step configures the project based on your environment, checks for required dependencies, and generates the necessary makefiles.
 
-4. Compile the Project:
+5. Compile the Project:
+   
    ```make```
+   
    This command compiles the source code into an executable. Any compilation errors related to dependencies or code issues will be displayed here.
 
 Installing the Software
@@ -163,19 +169,20 @@ File Handling Errors:
 Example Workflow
 ================
 1. Start the calculator:
+
    ```./calculator```
 
-2. Change the domain to [0, 100]:
+3. Change the domain to [0, 100]:
    - Navigate to "Change Domain" and set the start to 0 and the end to 100.
 
-3. Input a new function:
+4. Input a new function:
    - Navigate to "Input Function" and enter cos(x).
 
-4. Run the calculation:
+5. Run the calculation:
    - Select "Run," then choose whether to view the graph or save the output to a file.
 
-5. Save the output:
+6. Save the output:
    - When prompted, enter output as the filename. The output will be saved as output.txt in the specified directory.
 
-6. Exit the calculator:
+7. Exit the calculator:
    - Select "Quit" to safely exit the program.
